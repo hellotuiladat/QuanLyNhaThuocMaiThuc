@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="lib/flatlaf-3.0.jar"/>
+	<classpathentry kind="lib" path="lib/flatlaf-extras-3.1.jar"/>
+	<classpathentry kind="lib" path="lib/flatlaf-fonts-roboto-2.137.jar"/>
+	<classpathentry kind="lib" path="lib/itextpdf-5.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/jcalendar-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/sqljdbc4.jar"/>
+	<classpathentry kind="lib" path="lib/svgSalamander-1.1.4.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
