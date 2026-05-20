@@ -312,24 +312,11 @@ public class formQuanLyThuoc extends JPanel {
     
     private void loadDataTable() {
         try {
-        	SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             tableModel.setRowCount(0);
             hanSuDungTheoMaThuoc.clear();
             dsThuoc = thuocDAO.getDsThuoc();
             for (Thuoc t : dsThuoc) {
-            	String tenDanhMuc = dmtDAO.getDanhMucThuocQuaMaDanhMuc(t.getDanhMucThuoc().getMaDanhMuc()).getTenDanhMuc();
-                if (t.getHanSuDung() != null) { hanSuDungTheoMaThuoc.put(t.getMaThuoc(), new Date(t.getHanSuDung().getTime())); }
-                tableModel.addRow(new Object[] {
-                    t.getMaThuoc(),
-                    t.getTenThuoc(),
-                    tenDanhMuc,
-                    t.getXuatXu(),
-                    t.getDonViTinh(),
-                    String.format("%,.0f VNĐ", t.getGiaBan()),
-                    t.getSoLuongTon(),                    t.getHanSuDung() == null ? "" : sdf.format(t.getHanSuDung()),
-                    t.getMoTa(),
-                    t.getThanhPhan()
-                });
+                themDongThuoc(t);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -467,39 +454,62 @@ private void xemThongTin() {
             
             switch (searchType) {
                 case "Tất cả":
-                    match = t.getMaThuoc().toLowerCase().contains(keyword) ||
-                            t.getTenThuoc().toLowerCase().contains(keyword) ||
-                            t.getDanhMucThuoc().getTenDanhMuc().toLowerCase().contains(keyword) ||
-                            t.getXuatXu().toLowerCase().contains(keyword);
+                    match = safeLower(t.getMaThuoc()).contains(keyword) ||
+                            safeLower(t.getTenThuoc()).contains(keyword) ||
+                            safeLower(layTenDanhMuc(t)).contains(keyword) ||
+                            safeLower(t.getXuatXu()).contains(keyword);
                     break;
                 case "Mã thuốc":
-                    match = t.getMaThuoc().toLowerCase().contains(keyword);
+                    match = safeLower(t.getMaThuoc()).contains(keyword);
                     break;
                 case "Tên thuốc":
-                    match = t.getTenThuoc().toLowerCase().contains(keyword);
+                    match = safeLower(t.getTenThuoc()).contains(keyword);
                     break;
                 case "Danh mục":
-                    match = t.getDanhMucThuoc().getTenDanhMuc().toLowerCase().contains(keyword);
+                    match = safeLower(layTenDanhMuc(t)).contains(keyword);
                     break;
                 case "Xuất xứ":
-                    match = t.getXuatXu().toLowerCase().contains(keyword);
+                    match = safeLower(t.getXuatXu()).contains(keyword);
                     break;
             }
             
             if (match) {
-                tableModel.addRow(new Object[] {
-                    t.getMaThuoc(),
-                    t.getTenThuoc(),
-                    t.getDanhMucThuoc().getTenDanhMuc(),
-                    t.getXuatXu(),
-                    String.format("%,.0f VNĐ", t.getGiaBan()),
-                    t.getSoLuongTon(),
-                    t.getNgaySanXuat(),
-                    t.getHanSuDung(),
-                    t.getMoTa(),
-                    t.getThanhPhan()
-                });
+                themDongThuoc(t);
             }
         }
+    }
+
+    private void themDongThuoc(Thuoc t) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        if (t.getHanSuDung() != null) {
+            hanSuDungTheoMaThuoc.put(t.getMaThuoc(), new Date(t.getHanSuDung().getTime()));
+        }
+        tableModel.addRow(new Object[] {
+            t.getMaThuoc(),
+            t.getTenThuoc(),
+            layTenDanhMuc(t),
+            t.getXuatXu(),
+            t.getDonViTinh(),
+            String.format("%,.0f VNĐ", t.getGiaBan()),
+            t.getSoLuongTon(),
+            t.getHanSuDung() == null ? "" : sdf.format(t.getHanSuDung()),
+            t.getMoTa(),
+            t.getThanhPhan()
+        });
+    }
+
+    private String layTenDanhMuc(Thuoc t) {
+        if (t.getDanhMucThuoc() == null || t.getDanhMucThuoc().getMaDanhMuc() == null) {
+            return "";
+        }
+        try {
+            return dmtDAO.getDanhMucThuocQuaMaDanhMuc(t.getDanhMucThuoc().getMaDanhMuc()).getTenDanhMuc();
+        } catch (SQLException e) {
+            return t.getDanhMucThuoc().getTenDanhMuc() == null ? "" : t.getDanhMucThuoc().getTenDanhMuc();
+        }
+    }
+
+    private String safeLower(String value) {
+        return value == null ? "" : value.toLowerCase();
     }
 }

@@ -66,6 +66,55 @@ public class ThuocDAO {
         return null;
     }
 
+    public ArrayList<Thuoc> getDsThuocBanDuoc() throws SQLException {
+        ArrayList<Thuoc> temp = new ArrayList<>();
+        String sql = "SELECT t.maThuoc, t.tenThuoc, t.donViTinh, t.giaBan, t.moTa, t.maDanhMuc, "
+                + "t.hinhAnh, t.thanhPhan, t.xuatXu, dm.tenDanhMuc, "
+                + "SUM(lt.soLuongConLai) AS soLuongTon, MIN(lt.hanSuDung) AS hanSuDungGanNhat "
+                + "FROM Thuoc t "
+                + "JOIN LoThuoc lt ON t.maThuoc = lt.maThuoc "
+                + "LEFT JOIN DanhMucThuoc dm ON t.maDanhMuc = dm.maDanhMuc "
+                + "WHERE lt.soLuongConLai > 0 "
+                + "AND lt.hanSuDung >= CAST(GETDATE() AS DATE) "
+                + "AND lt.trangThai = N'Còn hàng' "
+                + "GROUP BY t.maThuoc, t.tenThuoc, t.donViTinh, t.giaBan, t.moTa, t.maDanhMuc, "
+                + "t.hinhAnh, t.thanhPhan, t.xuatXu, dm.tenDanhMuc "
+                + "ORDER BY t.maThuoc";
+        try (Connection con = getSafeConnection();
+                Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                temp.add(mapThuoc(rs));
+            }
+        }
+        return temp;
+    }
+
+    public Thuoc getThuocBanDuocTheoMa(String maThuoc) throws SQLException {
+        String sql = "SELECT t.maThuoc, t.tenThuoc, t.donViTinh, t.giaBan, t.moTa, t.maDanhMuc, "
+                + "t.hinhAnh, t.thanhPhan, t.xuatXu, dm.tenDanhMuc, "
+                + "SUM(lt.soLuongConLai) AS soLuongTon, MIN(lt.hanSuDung) AS hanSuDungGanNhat "
+                + "FROM Thuoc t "
+                + "JOIN LoThuoc lt ON t.maThuoc = lt.maThuoc "
+                + "LEFT JOIN DanhMucThuoc dm ON t.maDanhMuc = dm.maDanhMuc "
+                + "WHERE t.maThuoc = ? "
+                + "AND lt.soLuongConLai > 0 "
+                + "AND lt.hanSuDung >= CAST(GETDATE() AS DATE) "
+                + "AND lt.trangThai = N'Còn hàng' "
+                + "GROUP BY t.maThuoc, t.tenThuoc, t.donViTinh, t.giaBan, t.moTa, t.maDanhMuc, "
+                + "t.hinhAnh, t.thanhPhan, t.xuatXu, dm.tenDanhMuc";
+        try (Connection con = getSafeConnection();
+                PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, maThuoc);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapThuoc(rs);
+                }
+            }
+        }
+        return null;
+    }
+
     private Thuoc mapThuoc(ResultSet rs) throws SQLException {
         String maThuoc = rs.getString("maThuoc");
         String tenThuoc = rs.getString("tenThuoc");

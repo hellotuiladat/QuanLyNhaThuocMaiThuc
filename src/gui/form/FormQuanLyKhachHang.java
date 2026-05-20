@@ -56,6 +56,7 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
     private JTextField txtSearch;
     private DefaultTableModel tableModel;
     private KhachHangDAO khDAO;
+    private ArrayList<KhachHang> dsKhachHang = new ArrayList<>();
     Font headerTable = new Font("Roboto", Font.BOLD, 18);
     
     public FormQuanLyKhachHang() {
@@ -102,7 +103,7 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
 
         cboxSearch.setToolTipText("");
         cboxSearch.setPreferredSize(new Dimension(120, 40));
-        String[] searchType = {"Tất cả", "Mã", "Tên", "Số điện thoại"};
+        String[] searchType = {"Tất cả", "Mã", "Tên", "Số điện thoại", "Email"};
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(searchType);
         cboxSearch.setModel(model);
         jPanel3.add(cboxSearch);
@@ -208,7 +209,12 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
         tablePanel.setLayout(new BorderLayout());
         
         String[] tableTitle = {"Mã khách hàng", "Họ Tên", "Số điện thoại", "Email"};
-        tableModel = new DefaultTableModel(tableTitle, 0);
+        tableModel = new DefaultTableModel(tableTitle, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         table.getTableHeader().setFont(headerTable);
         table.setModel(tableModel);
 
@@ -247,21 +253,16 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
     }
     
     private void loadDataTable() {
-        ArrayList<KhachHang> dsKH = null;
+        tableModel.setRowCount(0);
         try {
-            dsKH = khDAO.getDSKhachHang();
+            dsKhachHang = khDAO.getDSKhachHang();
         } catch (SQLException e) {
             e.printStackTrace();
         }
         
-        if (dsKH != null) {
-            for (KhachHang kh : dsKH) {
-                tableModel.addRow(new Object[] {
-                    kh.getMaKH(),
-                    kh.getHoTen(),
-                    kh.getSoDienThoai(),
-                    kh.getEmail()
-                });
+        if (dsKhachHang != null) {
+            for (KhachHang kh : dsKhachHang) {
+                themDongKhachHang(kh);
             }
         }
     }
@@ -277,6 +278,7 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
         btnDelete.addActionListener(this);
         btnInfo.addActionListener(this);
         btnReload.addActionListener(this);
+        cboxSearch.addActionListener(e -> search());
     }
     
     @Override
@@ -393,71 +395,63 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
     
     private void search() 
     {
-        String searchText = txtSearch.getText().trim();
+        String searchText = txtSearch.getText().trim().toLowerCase();
         Object selected = cboxSearch.getSelectedItem();
         String searchCriteria = selected != null ? selected.toString() : "Tất cả";
 
-        try
-        {
-            // Nếu rỗng -> load lại toàn bộ
-            if (searchText.isEmpty()) 
-            {
-                reloadTable();
-                return;
-            }
-            // Chuẩn bị 4 tham số cho DAO: maKH, hoTen, soDienThoai, email
-            String maKH = "";
-            String hoTen = "";
-            String soDienThoai = "";
-            String email = "";
+        if (searchText.isEmpty()) {
+            reloadTable();
+            return;
+        }
+
+        tableModel.setRowCount(0);
+        for (KhachHang kh : dsKhachHang) {
+            String maKH = safeLower(kh.getMaKH());
+            String hoTen = safeLower(kh.getHoTen());
+            String soDienThoai = safeLower(kh.getSoDienThoai());
+            String email = safeLower(kh.getEmail());
+            boolean match = false;
+
             switch (searchCriteria) 
             {
                 case "Mã":
-                    maKH = searchText;
+                    match = maKH.contains(searchText);
                     break;
                 case "Tên":
-                    hoTen = searchText;
+                    match = hoTen.contains(searchText);
                     break;
                 case "Số điện thoại":
-                    soDienThoai = searchText;
+                    match = soDienThoai.contains(searchText);
                     break;
                 case "Email":
-                    email = searchText;
+                    match = email.contains(searchText);
                     break;
                 case "Tất cả":
                 default:
-                    // Tìm trong tất cả các trường
-                    maKH = searchText;
-                    hoTen = searchText;
-                    soDienThoai = searchText;
-                    email = searchText;
+                    match = maKH.contains(searchText)
+                            || hoTen.contains(searchText)
+                            || soDienThoai.contains(searchText)
+                            || email.contains(searchText);
                     break;
             }
 
-            // Gọi DAO với 4 tham số
-            ArrayList<KhachHang> searchResults = khDAO.timKiemKhachHang(maKH, hoTen, soDienThoai, email);
-
-            // Clear table
-            tableModel.setRowCount(0);
-
-            // Thêm kết quả vào table
-            for (KhachHang kh : searchResults) {
-                tableModel.addRow(new Object[] {
-                    kh.getMaKH(),
-                    kh.getHoTen(),
-                    kh.getSoDienThoai(),
-                    kh.getEmail()
-                });
+            if (match) {
+                themDongKhachHang(kh);
             }
-        } 
-        catch (SQLException e) 
-        {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                "Lỗi khi tìm kiếm: " + e.getMessage(),
-                "Lỗi",
-                JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void themDongKhachHang(KhachHang kh) {
+        tableModel.addRow(new Object[] {
+            kh.getMaKH(),
+            kh.getHoTen(),
+            kh.getSoDienThoai(),
+            kh.getEmail()
+        });
+    }
+
+    private String safeLower(String value) {
+        return value == null ? "" : value.toLowerCase();
     }
 
     

@@ -658,30 +658,14 @@ public class formThemPhieuDatThuoc extends JPanel {
         }
         hanSuDungMap.clear();
         
-        // Renderer tô đỏ thuốc hết hạn, tô vàng thuốc sắp hết hạn (<=30 ngày)
-        DefaultTableCellRenderer expiryRenderer = new DefaultTableCellRenderer() {
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer() {
             @Override
             public java.awt.Component getTableCellRendererComponent(
                     JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 java.awt.Component comp = super.getTableCellRendererComponent(
                         table, value, isSelected, hasFocus, row, column);
                 setHorizontalAlignment(JLabel.CENTER);
-                String maThuoc = table.getValueAt(row, 1).toString();
-                Date hsd = hanSuDungMap.get(maThuoc);
-                if (hsd != null) {
-                    java.sql.Date sqlHsd = new java.sql.Date(hsd.getTime());
-                    boolean hetHan = sqlHsd.before(java.sql.Date.valueOf(LocalDate.now()));
-                    boolean sapHetHan = !hetHan && sqlHsd.before(java.sql.Date.valueOf(LocalDate.now().plusDays(30)));
-                    if (isSelected) {
-                        comp.setForeground(table.getSelectionForeground());
-                    } else if (hetHan) {
-                        comp.setForeground(Color.RED);
-                    } else if (sapHetHan) {
-                        comp.setForeground(new Color(255, 165, 0));
-                    } else {
-                        comp.setForeground(Color.BLACK);
-                    }
-                } else if (!isSelected) {
+                if (!isSelected) {
                     comp.setForeground(Color.BLACK);
                 }
                 return comp;
@@ -689,10 +673,10 @@ public class formThemPhieuDatThuoc extends JPanel {
         };
 
         for (int i = 0; i < tblDanhSachThuoc.getColumnCount(); i++) {
-            tblDanhSachThuoc.getColumnModel().getColumn(i).setCellRenderer(expiryRenderer);
+            tblDanhSachThuoc.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
         modelDanhSachThuoc.setRowCount(0);
-        ArrayList<Thuoc> dsThuoc = thuocDAO.getDsThuoc();
+        ArrayList<Thuoc> dsThuoc = thuocDAO.getDsThuocBanDuoc();
         int count = 1;
         for (Thuoc thuoc : dsThuoc) {
             hanSuDungMap.put(thuoc.getMaThuoc(), thuoc.getHanSuDung());
@@ -720,7 +704,7 @@ public class formThemPhieuDatThuoc extends JPanel {
         }
         String maThuoc = (String) tblDanhSachThuoc.getValueAt(index, 1);
         try {
-            Thuoc thuoc = thuocDAO.getThuocTheoMaThuoc(maThuoc);
+            Thuoc thuoc = thuocDAO.getThuocBanDuocTheoMa(maThuoc);
             if (thuoc != null) {
                 txtMaThuoc.setText(thuoc.getMaThuoc());
                 txtTenThuoc.setText(thuoc.getTenThuoc());
@@ -779,7 +763,7 @@ public class formThemPhieuDatThuoc extends JPanel {
                 showWarning("Số lượng phải lớn hơn 0!");
                 return;
             }
-            Thuoc thuoc = thuocDAO.getThuocTheoMaThuoc(currentMaThuoc);
+            Thuoc thuoc = thuocDAO.getThuocBanDuocTheoMa(currentMaThuoc);
             if (thuoc == null) {
                 showError("Không tìm thấy thuốc!");
                 return;
