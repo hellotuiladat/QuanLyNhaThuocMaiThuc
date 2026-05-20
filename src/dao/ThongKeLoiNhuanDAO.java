@@ -296,7 +296,7 @@ public class ThongKeLoiNhuanDAO {
                     "INNER JOIN Thuoc t ON cthd.maThuoc = t.maThuoc " +
                     "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
                     "GROUP BY t.maThuoc, t.tenThuoc " +
-                    "ORDER BY doanhThu DESC";
+                    "ORDER BY soLuongBan DESC, doanhThu DESC";
         
         Connection con = null;
         PreparedStatement stmt = null;

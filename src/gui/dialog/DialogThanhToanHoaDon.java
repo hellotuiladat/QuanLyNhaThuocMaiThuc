@@ -1,4 +1,4 @@
-﻿package gui.dialog;
+package gui.dialog;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -575,7 +575,7 @@ private void taoMaQrCode() {
         
         // Tạo URL cho QR code
         String qrUrl = String.format(
-            "https://img.vietqr.io/image/%s-%s-compact.png?amount=%s&addInfo=%s",
+            "https://img.vietqr.io/image/%s-%s-compact.pnoing?amount=%s&addInfo=%s",
             bank, account, amountStr, URLEncoder.encode(noiDung, "UTF-8")
         );
         
@@ -722,6 +722,11 @@ private void taoMaQrCode() {
             com.itextpdf.text.Font fontBold = new com.itextpdf.text.Font(bf, 12, com.itextpdf.text.Font.BOLD);
 
             // Title
+            com.itextpdf.text.Font fontStoreName = new com.itextpdf.text.Font(bf, 20, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Paragraph storeName = new com.itextpdf.text.Paragraph("NHÀ THUỐC MAI THỨC", fontStoreName);
+            storeName.setAlignment(Element.ALIGN_CENTER);
+            document.add(storeName);
+
             com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("HÓA ĐƠN BÁN HÀNG", fontTitle);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);

@@ -1,4 +1,4 @@
-﻿package gui.form;
+package gui.form;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -219,7 +219,7 @@ public class Login extends JFrame implements ActionListener
         // Footer Label
         gbc.gridy = 7;
         gbc.insets = new Insets(20, 0, 0, 0);
-        JLabel lblFooter = new JLabel("© 2025 Nguyên Hưng Management System");
+        JLabel lblFooter = new JLabel("© 2026 Mai Thức Management System");
         lblFooter.setFont(new Font("Roboto", Font.ITALIC, 11));
         lblFooter.setForeground(new Color(150, 150, 150));
         lblFooter.setHorizontalAlignment(SwingConstants.CENTER);

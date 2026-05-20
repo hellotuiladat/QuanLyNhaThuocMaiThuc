@@ -1,4 +1,4 @@
-﻿package gui.form;
+package gui.form;
 
 import java.awt.*;
 import java.awt.event.*;

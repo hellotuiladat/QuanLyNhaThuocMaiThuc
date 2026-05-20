@@ -1,4 +1,4 @@
-﻿package gui.form;
+package gui.form;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -297,7 +297,7 @@ public class FormThongKeLoiNhuan extends JPanel implements ActionListener {
         cboTopN.setSelectedItem(10);
         cboTopN.setPreferredSize(new Dimension(80, 30));
         controlPanel.add(cboTopN);
-        controlPanel.add(new JLabel("sản phẩm có doanh thu cao nhất"));
+        controlPanel.add(new JLabel("sản phẩm bán chạy nhất"));
         
         panel.add(controlPanel, BorderLayout.NORTH);
         

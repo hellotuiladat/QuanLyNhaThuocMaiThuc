@@ -1,4 +1,4 @@
-﻿package gui.dialog;
+package gui.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -28,7 +28,6 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import dao.DanhMucThuocDAO;
 import dao.ThuocDAO;
@@ -218,7 +217,6 @@ public class DialogThemThuoc extends JDialog {
         buttonPanel.setBackground(Color.WHITE);
         
         btnLuu = new JButton("LƯU");
-        btnLuu.setIcon(new FlatSVGIcon("./img/save.svg"));
         btnLuu.setFont(new Font("Roboto", Font.BOLD, 14));
         btnLuu.setPreferredSize(new Dimension(120, 40));
         btnLuu.setBackground(new Color(0, 0, 205));
@@ -228,7 +226,6 @@ public class DialogThemThuoc extends JDialog {
         btnLuu.addActionListener(e -> luuThuoc());
         
         btnHuy = new JButton("HỦY");
-        btnHuy.setIcon(new FlatSVGIcon("./img/cancel.svg"));
         btnHuy.setFont(new Font("Roboto", Font.BOLD, 14));
         btnHuy.setPreferredSize(new Dimension(120, 40));
         btnHuy.setBackground(new Color(220, 53, 69));

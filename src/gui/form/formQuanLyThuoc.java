@@ -219,10 +219,16 @@ public class formQuanLyThuoc extends JPanel {
                 String maThuoc = table.getValueAt(row, 0).toString();
                 Date hanSuDung = hanSuDungTheoMaThuoc.get(maThuoc);
                 boolean hetHan = hanSuDung != null && hanSuDung.before(Date.valueOf(LocalDate.now()));
+                boolean sapHetHan = hanSuDung != null && !hetHan 
+                        && hanSuDung.before(Date.valueOf(LocalDate.now().plusDays(30)));
                 if (isSelected) {
                     comp.setForeground(table.getSelectionForeground());
+                } else if (hetHan) {
+                    comp.setForeground(Color.RED);
+                } else if (sapHetHan) {
+                    comp.setForeground(new Color(255, 165, 0));
                 } else {
-                    comp.setForeground(hetHan ? Color.RED : Color.BLACK);
+                    comp.setForeground(Color.BLACK);
                 }
                 return comp;
             }

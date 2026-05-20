@@ -1,5 +1,10 @@
 package gui.form;
 
+import dao.NhanVienDAO;
+import dao.PhieuDoiTraDAO;
+import entity.NhanVien;
+import entity.PhieuDoiTra;
+import gui.dialog.DialogDoiThuocNangCao;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.SQLException;
@@ -8,14 +13,8 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-
-import dao.PhieuDoiTraDAO;
-import dao.NhanVienDAO;
-import entity.PhieuDoiTra;
-import gui.dialog.DialogDoiThuocNangCao;
-import entity.NhanVien;
+import javax.swing.table.DefaultTableModel;
 
 public class formQuanLyDoiTraThuoc extends JPanel {
     private JTable table;

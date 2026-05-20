@@ -1,4 +1,4 @@
-﻿package gui.form;
+package gui.form;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -18,9 +18,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -69,7 +72,7 @@ import entity.Thue;
 import entity.Thuoc;
 import gui.dialog.DialogThanhToanHoaDon;
 import gui.dialog.DialogThemKhachHang;
-import gui.form.FormQuanLyKhachHang; // Import form quản lý khách hàng nếu cần cho dialog
+import gui.form.FormQuanLyKhachHang; 
 import utils.ImageHelper;
 
 public class formThemPhieuDatThuoc extends JPanel {
@@ -89,6 +92,7 @@ public class formThemPhieuDatThuoc extends JPanel {
     
     private String currentMaThuoc = "";
     private double tongTien = 0;
+    private final Map<String, Date> hanSuDungMap = new HashMap<>();
 
     private JPanel pnlChinh;
     private JPanel pnlTopWrapper; // Chứa Khuyến mãi + Thông tin thuốc
@@ -177,7 +181,6 @@ public class formThemPhieuDatThuoc extends JPanel {
         
         initComponents();
         configureProductLayout(); 
-        generateMaPhieuDatThuoc();
     }
 
     private void generateMaPhieuDatThuoc() {
@@ -289,17 +292,21 @@ public class formThemPhieuDatThuoc extends JPanel {
         txtMaThuoc.setEditable(false); txtMaThuoc.setPreferredSize(new Dimension(120, 40));
         
         JPanel pnlDongTen = createInputRow("Tên thuốc:", txtTenThuoc = new JTextField());
-        txtTenThuoc.setEditable(false); txtTenThuoc.setPreferredSize(new Dimension(350, 40));
+        txtTenThuoc.setEditable(false); txtTenThuoc.setPreferredSize(new Dimension(300, 40));
         
         JPanel pnlDongThanhPhan = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         pnlDongThanhPhan.setBackground(Color.WHITE);
         JLabel lblThanhPhan = new JLabel("Thành phần:");
         lblThanhPhan.setFont(new Font("Roboto", Font.PLAIN, 14));
-        lblThanhPhan.setPreferredSize(new Dimension(90, 40));
+        lblThanhPhan.setPreferredSize(new Dimension(90, 40));          
+        lblThanhPhan.setVerticalAlignment(SwingConstants.CENTER);      
         txaThanhPhan = new JTextArea();
-        txaThanhPhan.setEditable(false); txaThanhPhan.setLineWrap(true);
+        txaThanhPhan.setEditable(false);
+        txaThanhPhan.setLineWrap(true);
+        txaThanhPhan.setWrapStyleWord(true);                            
         JScrollPane scrThanhPhan = new JScrollPane(txaThanhPhan);
-        scrThanhPhan.setPreferredSize(new Dimension(320, 40));
+        scrThanhPhan.setPreferredSize(new Dimension(300, 40));          
+        scrThanhPhan.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER); // thêm dòng này
         pnlDongThanhPhan.add(lblThanhPhan);
         pnlDongThanhPhan.add(scrThanhPhan);
 
@@ -479,7 +486,7 @@ public class formThemPhieuDatThuoc extends JPanel {
         pnlThongTinThanhToan = new JPanel(new BorderLayout());
         pnlThongTinThanhToan.setBackground(Color.WHITE);
         pnlThongTinThanhToan.setBorder(new LineBorder(new Color(238, 238, 238), 2, true));
-        pnlThongTinThanhToan.setPreferredSize(new Dimension(500, 400));
+        pnlThongTinThanhToan.setPreferredSize(new Dimension(500, 430));
 
         pnlHeaderThanhToan = new JPanel(new BorderLayout());
         pnlHeaderThanhToan.setBackground(new Color(0, 0, 205));
@@ -498,11 +505,11 @@ public class formThemPhieuDatThuoc extends JPanel {
         // Group: Thông tin chung
         JPanel pnlGroupThongTin = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlGroupThongTin.setBackground(Color.WHITE);
-        pnlGroupThongTin. setLayout(new BoxLayout(pnlGroupThongTin, BoxLayout.Y_AXIS));
+        pnlGroupThongTin.setPreferredSize(new Dimension(440, 230));
 
-        pnlGroupThongTin.add(createInputRowWithLabelSize("Mã phiếu đặt thuốc", txtMaPhieuDat = new JTextField(), 200));
-        txtMaPhieuDat.setEditable(false); 
-        txtMaPhieuDat.setFont(new Font("Roboto Mono", Font.BOLD, 14));
+        // Mã phiếu đặt thuốc vẫn được tạo tự động nhưng không hiển thị trên giao diện
+        txtMaPhieuDat = new JTextField();
+        txtMaPhieuDat.setEditable(false);
         
         // Dòng SĐT + Button
         JPanel pnlDongSDT = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -527,14 +534,19 @@ public class formThemPhieuDatThuoc extends JPanel {
         pnlDongSDT.add(txtSdtKH); 
         pnlDongSDT.add(btnTimKiemKH); 
         pnlDongSDT.add(btnThemNhanhKH);
+        pnlDongSDT.setPreferredSize(new Dimension(440, 40));
         pnlGroupThongTin.add(pnlDongSDT);
 
         // Dòng Tên KH
-        pnlGroupThongTin.add(createInputRowWithLabelSize("Tên khách hàng", txtHoTenKH = new JTextField(), 200));
+        JPanel pnlDongTenKh = createInputRowWithLabelSize("Tên khách hàng", txtHoTenKH = new JTextField(), 200);
+        pnlDongTenKh.setPreferredSize(new Dimension(440, 40));
+        pnlGroupThongTin.add(pnlDongTenKh);
         
 
         // Dia Chi
-        pnlGroupThongTin.add(createInputRowWithLabelSize("Địa chỉ", txtDiaChi = new JTextField(),200));
+        JPanel pnlDongDiaChi = createInputRowWithLabelSize("Địa chỉ", txtDiaChi = new JTextField(), 200);
+        pnlDongDiaChi.setPreferredSize(new Dimension(440, 40));
+        pnlGroupThongTin.add(pnlDongDiaChi);
         cboHinhThucThanhToan = new JComboBox<String>();
         String[] hinhThucThanhToan = {"Tại chỗ" , "Thanh toán online"};
         for (String hinhThuc : hinhThucThanhToan) {
@@ -548,6 +560,7 @@ public class formThemPhieuDatThuoc extends JPanel {
         cboHinhThucThanhToan.setPreferredSize(new Dimension(200, 40));
         p.add(lbl);
         p.add(cboHinhThucThanhToan);
+        p.setPreferredSize(new Dimension(440, 40));
         
         pnlGroupThongTin.add(p);
         pnlFormNhapLieuThanhToan.add(pnlGroupThongTin);
@@ -631,16 +644,46 @@ public class formThemPhieuDatThuoc extends JPanel {
         if (modelGioHang != null) {
             modelGioHang.setRowCount(0);
         }
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        hanSuDungMap.clear();
+        
+        // Renderer tô đỏ thuốc hết hạn, tô vàng thuốc sắp hết hạn (<=30 ngày)
+        DefaultTableCellRenderer expiryRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(
+                    JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                java.awt.Component comp = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+                setHorizontalAlignment(JLabel.CENTER);
+                String maThuoc = table.getValueAt(row, 1).toString();
+                Date hsd = hanSuDungMap.get(maThuoc);
+                if (hsd != null) {
+                    java.sql.Date sqlHsd = new java.sql.Date(hsd.getTime());
+                    boolean hetHan = sqlHsd.before(java.sql.Date.valueOf(LocalDate.now()));
+                    boolean sapHetHan = !hetHan && sqlHsd.before(java.sql.Date.valueOf(LocalDate.now().plusDays(30)));
+                    if (isSelected) {
+                        comp.setForeground(table.getSelectionForeground());
+                    } else if (hetHan) {
+                        comp.setForeground(Color.RED);
+                    } else if (sapHetHan) {
+                        comp.setForeground(new Color(255, 165, 0));
+                    } else {
+                        comp.setForeground(Color.BLACK);
+                    }
+                } else if (!isSelected) {
+                    comp.setForeground(Color.BLACK);
+                }
+                return comp;
+            }
+        };
 
         for (int i = 0; i < tblDanhSachThuoc.getColumnCount(); i++) {
-            tblDanhSachThuoc.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+            tblDanhSachThuoc.getColumnModel().getColumn(i).setCellRenderer(expiryRenderer);
         }
         modelDanhSachThuoc.setRowCount(0);
         ArrayList<Thuoc> dsThuoc = thuocDAO.getDsThuoc();
         int count = 1;
         for (Thuoc thuoc : dsThuoc) {
+            hanSuDungMap.put(thuoc.getMaThuoc(), thuoc.getHanSuDung());
             modelDanhSachThuoc.addRow(new Object[] {
                 count++,
                 thuoc.getMaThuoc(),
@@ -685,6 +728,11 @@ public class formThemPhieuDatThuoc extends JPanel {
             txtSdtKH.requestFocus();
             return;
         }
+        if (!sdt.matches("0\\d{9}")) {
+            JOptionPane.showMessageDialog(this, "Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số bắt đầu bằng 0.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            txtSdtKH.requestFocus();
+            return;
+        }
         try {
             KhachHang kh = khachHangDAO.getKhachHangTheoSDT(sdt);
             if (kh != null) {
@@ -723,6 +771,14 @@ public class formThemPhieuDatThuoc extends JPanel {
             if (thuoc == null) {
                 showError("Không tìm thấy thuốc!");
                 return;
+            }
+            // Kiểm tra hạn sử dụng
+            if (thuoc.getHanSuDung() != null) {
+                java.sql.Date sqlHsd = new java.sql.Date(thuoc.getHanSuDung().getTime());
+                if (sqlHsd.before(java.sql.Date.valueOf(LocalDate.now()))) {
+                    showWarning("Thuốc \"" + thuoc.getTenThuoc() + "\" đã hết hạn sử dụng!\nKhông thể thêm vào giỏ hàng.");
+                    return;
+                }
             }
             int rowSelected = tblDanhSachThuoc.getSelectedRow();
             if (rowSelected < 0) {
@@ -843,14 +899,25 @@ public class formThemPhieuDatThuoc extends JPanel {
 
     private void btnDatThuoc(ActionEvent evt) throws SQLException {
         if (dsChiTietPhieuDatThuoc.size() > 0) {
+        	// Tạo mã phiếu đặt thuốc tự động tại thời điểm đặt thuốc
+        	generateMaPhieuDatThuoc();
         	String maPhieuDat = txtMaPhieuDat.getText();
         	java.sql.Date ngayDat = new java.sql.Date(System.currentTimeMillis());
-        	String sdtKhachHang = txtSdtKH.getText();
+        	String sdtKhachHang = txtSdtKH.getText().trim();
         	if (sdtKhachHang.isBlank()) {
         		JOptionPane.showMessageDialog(this, "Số điện thoại khách hàng không được để trống!");
         		return;
         	}
+        	if (!sdtKhachHang.matches("0\\d{9}")) {
+        		JOptionPane.showMessageDialog(this, "Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số bắt đầu bằng 0.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+        		txtSdtKH.requestFocus();
+        		return;
+        	}
         	KhachHang khachHang = khachHangDAO.getKhachHangTheoSDT(sdtKhachHang);
+        	if (khachHang == null) {
+        		JOptionPane.showMessageDialog(this, "Khách hàng không có sẵn trong hệ thống!\nVui lòng ấn nút thêm khách hàng để thêm mới.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+        		return;
+        	}
         	String diaChi = txtDiaChi.getText();
         	if (diaChi.isBlank()) {
         		JOptionPane.showMessageDialog(this, "Địa chỉ của khách hàng không được để trống!");
@@ -861,6 +928,7 @@ public class formThemPhieuDatThuoc extends JPanel {
         	PhieuDatThuoc pdt = new PhieuDatThuoc(maPhieuDat, ngayDat, khachHang, diaChi, hinhThucThanhToan, trangThai);
         	if (pdtDAO.themPhieuDatThuoc(pdt)) {
         		for (ChiTietPhieuDatThuoc ctpdt : dsChiTietPhieuDatThuoc) {
+        			ctpdt.getPhieuDatThuoc().setMaPhieuDat(maPhieuDat);
         			ctpdtDAO.themChiTietPhieuDatThuoc(ctpdt);
         		}
         		showSuccess("Đặt thuốc thành công");
@@ -894,7 +962,7 @@ public class formThemPhieuDatThuoc extends JPanel {
         txtTongTien.setText("");
         tongTien = 0;
         
-        generateMaPhieuDatThuoc();
+
         try { loadDataThuoc(); } catch (SQLException e) { e.printStackTrace(); }
     }
 

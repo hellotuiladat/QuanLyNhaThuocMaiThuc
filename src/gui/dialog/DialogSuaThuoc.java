@@ -1,4 +1,4 @@
-﻿package gui.dialog;
+package gui.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -28,7 +28,6 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import dao.DanhMucThuocDAO;
 import dao.ThuocDAO;
@@ -209,7 +208,6 @@ public class DialogSuaThuoc extends JDialog {
         buttonPanel.setBackground(Color.WHITE);
         
         btnCapNhat = new JButton("CẬP NHẬT");
-        btnCapNhat.setIcon(new FlatSVGIcon("./img/update.svg"));
         btnCapNhat.setFont(new Font("Roboto", Font.BOLD, 14));
         btnCapNhat.setPreferredSize(new Dimension(140, 40));
         btnCapNhat.setBackground(new Color(0, 0, 205));
@@ -219,7 +217,6 @@ public class DialogSuaThuoc extends JDialog {
         btnCapNhat.addActionListener(e -> capNhatThuoc());
         
         btnHuy = new JButton("HỦY");
-        btnHuy.setIcon(new FlatSVGIcon("./img/cancel.svg"));
         btnHuy.setFont(new Font("Roboto", Font.BOLD, 14));
         btnHuy.setPreferredSize(new Dimension(120, 40));
         btnHuy.setBackground(new Color(220, 53, 69));
@@ -308,6 +305,14 @@ public class DialogSuaThuoc extends JDialog {
             
             // Lấy danh mục được chọn
             int selectedIndex = cboxDanhMuc.getSelectedIndex();
+            if (selectedIndex < 0) {
+                JOptionPane.showMessageDialog(this, 
+                    "Vui lòng chọn danh mục thuốc!", 
+                    "Cảnh báo", 
+                    JOptionPane.WARNING_MESSAGE);
+                cboxDanhMuc.requestFocus();
+                return;
+            }
             DanhMucThuoc danhMuc = dsDanhMuc.get(selectedIndex);
             
             // Chuyển đổi java.util.Date sang java.sql.Date

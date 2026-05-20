@@ -46,7 +46,7 @@ public class ThuocDAO {
     
     public ArrayList<Thuoc> getDsThuoc() throws SQLException {
     	ArrayList<Thuoc> temp = new ArrayList<>();
-    	String sql = "SELECT * FROM Thuoc";
+    	String sql = "SELECT t.*, dm.tenDanhMuc FROM Thuoc t LEFT JOIN DanhMucThuoc dm ON t.maDanhMuc = dm.maDanhMuc";
     	try (Connection con = getSafeConnection()) {
     		Statement stmt = con.createStatement();
     		try (ResultSet rs = stmt.executeQuery(sql)) {
@@ -59,11 +59,12 @@ public class ThuocDAO {
                     Date hanSuDung = rs.getDate("hanSuDung");
                     String moTa = rs.getString("moTa");
                     String maDanhMuc = rs.getString("maDanhMuc");
+                    String tenDanhMuc = rs.getString("tenDanhMuc");
                     String hinhAnh = rs.getString("hinhAnh");
                     String thanhPhan = rs.getString("thanhPhan");
                     Date ngaySanXuat = rs.getDate("ngaySanXuat");
                     String xuatXu = rs.getString("xuatXu");
-                    Thuoc thuoc = new Thuoc(mt, tenThuoc, donViTinh, giaBan, soLuong, hanSuDung, moTa, new DanhMucThuoc(maDanhMuc), hinhAnh, thanhPhan, ngaySanXuat, xuatXu);
+                    Thuoc thuoc = new Thuoc(mt, tenThuoc, donViTinh, giaBan, soLuong, hanSuDung, moTa, new DanhMucThuoc(maDanhMuc, tenDanhMuc), hinhAnh, thanhPhan, ngaySanXuat, xuatXu);
                     temp.add(thuoc);
     			}
     		}
@@ -72,7 +73,7 @@ public class ThuocDAO {
     }
     
     public Thuoc getThuocTheoMaThuoc(String maThuoc) throws SQLException {
-        String sql = "SELECT * FROM Thuoc WHERE maThuoc = ?";
+        String sql = "SELECT t.*, dm.tenDanhMuc FROM Thuoc t LEFT JOIN DanhMucThuoc dm ON t.maDanhMuc = dm.maDanhMuc WHERE t.maThuoc = ?";
         try (Connection con = getSafeConnection()) {
             PreparedStatement stmt = con.prepareStatement(sql);
             stmt.setString(1, maThuoc);
@@ -87,12 +88,13 @@ public class ThuocDAO {
                     Date hanSuDung = rs.getDate("hanSuDung");
                     String moTa = rs.getString("moTa");
                     String maDanhMuc = rs.getString("maDanhMuc");
+                    String tenDanhMuc = rs.getString("tenDanhMuc");
                     String hinhAnh = rs.getString("hinhAnh");
                     String thanhPhan = rs.getString("thanhPhan");
                     Date ngaySanXuat = rs.getDate("ngaySanXuat");
                     String xuatXu = rs.getString("xuatXu");
                     
-                    return new Thuoc(mt, tenThuoc, donViTinh, giaBan, soLuong, hanSuDung, moTa, new DanhMucThuoc(maDanhMuc), hinhAnh, thanhPhan, ngaySanXuat, xuatXu);
+                    return new Thuoc(mt, tenThuoc, donViTinh, giaBan, soLuong, hanSuDung, moTa, new DanhMucThuoc(maDanhMuc, tenDanhMuc), hinhAnh, thanhPhan, ngaySanXuat, xuatXu);
                 }
             }
         }
@@ -100,26 +102,45 @@ public class ThuocDAO {
     }
     
     public boolean updateSoLuongTonTheoMaThuoc(String maThuoc, int soLuongNew) throws SQLException {
-        String sql = "UPDATE Thuoc SET SoLuongTon = ? WHERE MaThuoc = ?";
+        String sql = "UPDATE Thuoc SET soLuongTon = ? WHERE maThuoc = ?";
         try (Connection con = getSafeConnection()) {
             PreparedStatement stmt = con.prepareStatement(sql);
             stmt.setInt(1, soLuongNew);
             stmt.setString(2, maThuoc);
 
             int rowAffected = stmt.executeUpdate();
+            if (rowAffected > 0 && !con.getAutoCommit()) {
+                con.commit();
+            }
+            return rowAffected > 0;
+        }
+    }
+
+    public boolean truSoLuongTonTheoMaThuoc(String maThuoc, int soLuongBan) throws SQLException {
+        String sql = "UPDATE Thuoc SET soLuongTon = soLuongTon - ? WHERE maThuoc = ? AND soLuongTon >= ?";
+        try (Connection con = getSafeConnection()) {
+            PreparedStatement stmt = con.prepareStatement(sql);
+            stmt.setInt(1, soLuongBan);
+            stmt.setString(2, maThuoc);
+            stmt.setInt(3, soLuongBan);
+
+            int rowAffected = stmt.executeUpdate();
+            if (rowAffected > 0 && !con.getAutoCommit()) {
+                con.commit();
+            }
             return rowAffected > 0;
         }
     }
 
     
     public int getSoLuongTonTheoMaThuoc(String maThuoc) throws SQLException {
-        String sql = "SELECT SoLuongTon FROM Thuoc WHERE MaThuoc = ?";
+        String sql = "SELECT soLuongTon FROM Thuoc WHERE maThuoc = ?";
         try (Connection con = getSafeConnection()) {
             PreparedStatement stmt = con.prepareStatement(sql);
             stmt.setString(1, maThuoc);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt("SoLuongTon");
+                return rs.getInt("soLuongTon");
             }
         }
         return 0;

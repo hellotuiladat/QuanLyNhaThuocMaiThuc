@@ -1,4 +1,4 @@
-﻿package gui. dialog;
+package gui. dialog;
 
 import java.awt.*;
 import java.io.File;
@@ -55,6 +55,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
     private ThuocDAO thuocDAO;
     private KhachHangDAO khDAO;
     private PhieuDatThuocDAO pdtDAO;
+    private NhanVienDAO nhanVienDAO;
     
     private JPanel mainPanel;
     private boolean isThanhToan = false;
@@ -67,16 +68,33 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         // Khởi tạo các DAO
         thueDAO = new ThueDAO();
         thuocDAO = new ThuocDAO();
-        new NhanVienDAO();
+        nhanVienDAO = new NhanVienDAO();
         hdDAO = new HoaDonDAO();
         khDAO = new KhachHangDAO();
         pdtDAO = new PhieuDatThuocDAO();
         cthdDAO = new ChiTietHoaDonDAO(); // ✅ FIX: Thêm dòng này
         khuyenMaiDAO = new KhuyenMaiDAO(); // ✅ FIX: Thêm dòng này
         
-        this.nv = nv;
+        this.nv = resolveNhanVien(nv);
         this.maPhieuDatGlobal = maPhieuDat;
         initComponents(maPhieuDat, ngayDat, maKH, dsPhieuDatThuoc, tongTien);
+    }
+
+    private NhanVien resolveNhanVien(NhanVien nhanVien) {
+        if (nhanVien == null || nhanVien.getMaNV() == null || nhanVien.getMaNV().trim().isEmpty()) {
+            return nhanVien;
+        }
+
+        try {
+            NhanVien fullNhanVien = nhanVienDAO.getNhanVienTheoMa(nhanVien.getMaNV());
+            if (fullNhanVien != null) {
+                return fullNhanVien;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return nhanVien;
     }
 
     private void initComponents(String maPhieuDat, Date ngayDat, String maKH,
@@ -174,7 +192,10 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         lblNVLabel.setFont(labelFont);
         row3.add(lblNVLabel);
         
-        lblNhanVien = new JLabel(nv.getTenNV());
+        String tenNhanVien = nv != null && nv.getTenNV() != null && !nv.getTenNV().trim().isEmpty()
+                ? nv.getTenNV()
+                : (nv != null ? nv.getMaNV() : "N/A");
+        lblNhanVien = new JLabel(tenNhanVien);
         lblNhanVien.setFont(valueFont);
         row3.add(lblNhanVien);
         
@@ -466,10 +487,14 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
                         } else {
                             String maThuoc = cthd.getThuoc().getMaThuoc();
                             int soLuongBan = cthd.getSoLuong();
-                            int soLuongTonCu = thuocDAO.getSoLuongTonTheoMaThuoc(maThuoc);
-                            int soLuongMoi = Math.max(0, soLuongTonCu - soLuongBan);
-                            
-                            thuocDAO.updateSoLuongTonTheoMaThuoc(maThuoc, soLuongMoi);
+                            if (!thuocDAO.truSoLuongTonTheoMaThuoc(maThuoc, soLuongBan)) {
+                                allSuccess = false;
+                                JOptionPane.showMessageDialog(this,
+                                        "Không đủ tồn kho để cập nhật thuốc " + maThuoc,
+                                        "Lỗi tồn kho",
+                                        JOptionPane.ERROR_MESSAGE);
+                                break;
+                            }
                         }
                     }
                     
@@ -522,8 +547,8 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
 
     private void taoMaQrCode() {
         try {
-            String bank = "mbbank";
-            String account = "0389470120";
+            String bank = "bidv";
+            String account = "7351363429";
             String amountStr = txtThanhTien.getText().trim()
                     .replace(",", "")
                     .replace("VNĐ", "")
@@ -555,7 +580,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
 
             infoPanel.add(lblAmount);
             infoPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-            infoPanel.add(new JLabel("Ngân hàng: MB Bank") {{ setAlignmentX(Component.CENTER_ALIGNMENT); }});
+            infoPanel.add(new JLabel("Ngân hàng: BIDV") {{ setAlignmentX(Component.CENTER_ALIGNMENT); }});
             infoPanel. add(new JLabel("Số tài khoản: " + account) {{ setAlignmentX(Component.CENTER_ALIGNMENT); }});
 
             dlQrCode.add(infoPanel, BorderLayout. NORTH);

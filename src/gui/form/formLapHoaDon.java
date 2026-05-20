@@ -1,4 +1,4 @@
-﻿package gui.form;
+package gui.form;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -16,9 +16,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -83,6 +86,7 @@ public class formLapHoaDon extends JPanel {
     // Variables Logic
     private String currentMaThuoc = "";
     private double tongTien = 0;
+    private final Map<String, Date> hanSuDungMap = new HashMap<>();
 
     // GUI Components - Main Structure
     private JPanel pnlChinh;
@@ -173,7 +177,6 @@ public class formLapHoaDon extends JPanel {
         
         initComponents();
         configureProductLayout();
-        generateMaHoaDon();
     }
 
     private void generateMaHoaDon() {
@@ -506,8 +509,9 @@ public class formLapHoaDon extends JPanel {
         pnlGroupThongTin.setBackground(Color.WHITE);
         pnlGroupThongTin.setPreferredSize(new Dimension(440, 140));
 
-        pnlGroupThongTin.add(createInputRowWithLabelSize("Mã hóa đơn", txtMaHoaDon = new JTextField(), 200));
-        txtMaHoaDon.setEditable(false); txtMaHoaDon.setFont(new Font("Roboto Mono", Font.BOLD, 14));
+        // Mã hóa đơn vẫn được tạo tự động nhưng không hiển thị trên giao diện
+        txtMaHoaDon = new JTextField();
+        txtMaHoaDon.setEditable(false);
         
         // Dòng SĐT + Button
         JPanel pnlDongSDT = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -641,16 +645,46 @@ public class formLapHoaDon extends JPanel {
         if (modelGioHang != null) {
             modelGioHang.setRowCount(0);
         }
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        hanSuDungMap.clear();
+        
+        // Renderer tô đỏ thuốc hết hạn, tô vàng thuốc sắp hết hạn (<=30 ngày)
+        DefaultTableCellRenderer expiryRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(
+                    JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                java.awt.Component comp = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+                setHorizontalAlignment(JLabel.CENTER);
+                String maThuoc = table.getValueAt(row, 1).toString();
+                Date hsd = hanSuDungMap.get(maThuoc);
+                if (hsd != null) {
+                    java.sql.Date sqlHsd = new java.sql.Date(hsd.getTime());
+                    boolean hetHan = sqlHsd.before(java.sql.Date.valueOf(LocalDate.now()));
+                    boolean sapHetHan = !hetHan && sqlHsd.before(java.sql.Date.valueOf(LocalDate.now().plusDays(30)));
+                    if (isSelected) {
+                        comp.setForeground(table.getSelectionForeground());
+                    } else if (hetHan) {
+                        comp.setForeground(Color.RED);
+                    } else if (sapHetHan) {
+                        comp.setForeground(new Color(255, 165, 0));
+                    } else {
+                        comp.setForeground(Color.BLACK);
+                    }
+                } else if (!isSelected) {
+                    comp.setForeground(Color.BLACK);
+                }
+                return comp;
+            }
+        };
 
         for (int i = 0; i < tblDanhSachThuoc.getColumnCount(); i++) {
-            tblDanhSachThuoc.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+            tblDanhSachThuoc.getColumnModel().getColumn(i).setCellRenderer(expiryRenderer);
         }
         modelDanhSachThuoc.setRowCount(0);
         ArrayList<Thuoc> dsThuoc = thuocDAO.getDsThuoc();
         int count = 1;
         for (Thuoc thuoc : dsThuoc) {
+            hanSuDungMap.put(thuoc.getMaThuoc(), thuoc.getHanSuDung());
             modelDanhSachThuoc.addRow(new Object[] {
                 count++,
                 thuoc.getMaThuoc(),
@@ -695,6 +729,11 @@ public class formLapHoaDon extends JPanel {
             txtSdtKH.requestFocus();
             return;
         }
+        if (!sdt.matches("0\\d{9}")) {
+            JOptionPane.showMessageDialog(this, "Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số bắt đầu bằng 0.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            txtSdtKH.requestFocus();
+            return;
+        }
         try {
             KhachHang kh = khachHangDAO.getKhachHangTheoSDT(sdt);
             if (kh != null) {
@@ -735,6 +774,14 @@ public class formLapHoaDon extends JPanel {
             if (thuoc == null) {
                 showError("Không tìm thấy thuốc!");
                 return;
+            }
+            // Kiểm tra hạn sử dụng
+            if (thuoc.getHanSuDung() != null) {
+                java.sql.Date sqlHsd = new java.sql.Date(thuoc.getHanSuDung().getTime());
+                if (sqlHsd.before(java.sql.Date.valueOf(LocalDate.now()))) {
+                    showWarning("Thuốc \"" + thuoc.getTenThuoc() + "\" đã hết hạn sử dụng!\nKhông thể thêm vào giỏ hàng.");
+                    return;
+                }
             }
             int rowSelected = tblDanhSachThuoc.getSelectedRow();
             if (rowSelected < 0) {
@@ -903,6 +950,11 @@ public class formLapHoaDon extends JPanel {
             return;
         }
         String sdt = txtSdtKH.getText().trim();
+        if (!sdt.isEmpty() && !sdt.matches("0\\d{9}")) {
+            showWarning("Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số bắt đầu bằng 0.");
+            txtSdtKH.requestFocus();
+            return;
+        }
         if (sdt.isEmpty()) sdt = "0000000000";
         
         String tienNhanVaoStr = txtTienKhachDua.getText().trim().replace(",", "");
@@ -915,9 +967,15 @@ public class formLapHoaDon extends JPanel {
                     return;
                 }
             }
+            // Tạo mã hóa đơn tự động tại thời điểm thanh toán
+            generateMaHoaDon();
             String tenKhachHang = txtHoTenKH.getText().trim();
             if (tenKhachHang.isBlank()) tenKhachHang = "Khách lẻ";
             String maHoaDon = txtMaHoaDon.getText();
+            
+            for (ChiTietHoaDon cthd : dsChiTietHoaDon) {
+                cthd.getHoaDon().setMaHD(maHoaDon);
+            }
             
             Window window = SwingUtilities.getWindowAncestor(this);
             Frame frame = (window instanceof Frame) ? (Frame) window : null;
@@ -977,7 +1035,6 @@ public class formLapHoaDon extends JPanel {
         txtTienTraLai.setText("");
         tongTien = 0;
         
-        generateMaHoaDon();
         try { loadDataThuoc(); } catch (SQLException e) { e.printStackTrace(); }
     }
 
