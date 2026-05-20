@@ -199,7 +199,7 @@ public class formQuanLyThuoc extends JPanel {
         tablePanel.setBorder(new LineBorder(new Color(230, 230, 230), 2, true));
         tablePanel.setLayout(new BorderLayout());
         
-        String[] tableTitle = {"Mã thuốc", "Tên thuốc", "Danh mục", "Xuất xứ","Đơn vị tính" ,"Giá bán", "Số lượng", "Ngày sản xuất", "Hạn sử dụng", "Mô tả", "Thành phần"};
+        String[] tableTitle = {"Mã thuốc", "Tên thuốc", "Danh mục", "Xuất xứ", "Đơn vị tính", "Giá bán", "Tổng tồn", "HSD gần nhất", "Mô tả", "Thành phần"};
         tableModel = new DefaultTableModel(tableTitle, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -318,7 +318,7 @@ public class formQuanLyThuoc extends JPanel {
             dsThuoc = thuocDAO.getDsThuoc();
             for (Thuoc t : dsThuoc) {
             	String tenDanhMuc = dmtDAO.getDanhMucThuocQuaMaDanhMuc(t.getDanhMucThuoc().getMaDanhMuc()).getTenDanhMuc();
-                hanSuDungTheoMaThuoc.put(t.getMaThuoc(), new Date(t.getHanSuDung().getTime()));
+                if (t.getHanSuDung() != null) { hanSuDungTheoMaThuoc.put(t.getMaThuoc(), new Date(t.getHanSuDung().getTime())); }
                 tableModel.addRow(new Object[] {
                     t.getMaThuoc(),
                     t.getTenThuoc(),
@@ -326,9 +326,7 @@ public class formQuanLyThuoc extends JPanel {
                     t.getXuatXu(),
                     t.getDonViTinh(),
                     String.format("%,.0f VNĐ", t.getGiaBan()),
-                    t.getSoLuongTon(),
-                    sdf.format(t.getNgaySanXuat()),
-                    sdf.format(t.getHanSuDung()),
+                    t.getSoLuongTon(),                    t.getHanSuDung() == null ? "" : sdf.format(t.getHanSuDung()),
                     t.getMoTa(),
                     t.getThanhPhan()
                 });

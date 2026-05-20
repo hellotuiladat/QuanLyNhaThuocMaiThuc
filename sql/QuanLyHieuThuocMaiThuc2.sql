@@ -1,4 +1,4 @@
-﻿use master
+use master
 GO
 
 -- Drop database nếu đã tồn tại
@@ -70,13 +70,10 @@ CREATE TABLE Thuoc (
     tenThuoc NVARCHAR(100) NOT NULL,
     donViTinh NVARCHAR(20) NOT NULL,
     giaBan DECIMAL(18,2) CHECK (giaBan >= 0),
-    soLuongTon INT CHECK (soLuongTon >= 0),
-    hanSuDung DATE NOT NULL,
     moTa NVARCHAR(255) NOT NULL,
     maDanhMuc NVARCHAR(20),
     hinhAnh NVARCHAR(255) NOT NULL,
     thanhPhan NVARCHAR(255) NOT NULL,
-    ngaySanXuat DATE,
     xuatXu NVARCHAR(100) NOT NULL,
     FOREIGN KEY (maDanhMuc) REFERENCES DanhMucThuoc(maDanhMuc)
 );
@@ -90,15 +87,55 @@ CREATE TABLE PhieuNhapHang (
     FOREIGN KEY (maNCC) REFERENCES NhaCungCap(maNCC)
 );
 
+CREATE TABLE LoThuoc (
+    maLo NVARCHAR(20) PRIMARY KEY,
+    soLo NVARCHAR(50) NOT NULL,
+    maThuoc NVARCHAR(20) NOT NULL,
+    maPhieuNhap NVARCHAR(20) NOT NULL,
+    ngaySanXuat DATE,
+    hanSuDung DATE NOT NULL,
+    soLuongNhap INT NOT NULL CHECK (soLuongNhap > 0),
+    soLuongConLai INT NOT NULL CHECK (soLuongConLai >= 0),
+    donGiaNhap DECIMAL(18,2) NOT NULL CHECK (donGiaNhap >= 0),
+    trangThai NVARCHAR(30) DEFAULT N'Còn hàng'
+        CHECK (trangThai IN (N'Còn hàng', N'Hết hàng', N'Hết hạn')),
+    FOREIGN KEY (maThuoc) REFERENCES Thuoc(maThuoc),
+    FOREIGN KEY (maPhieuNhap) REFERENCES PhieuNhapHang(maPhieuNhap),
+    CONSTRAINT CK_LoThuoc_MaLo CHECK (maLo LIKE 'L[0-9][0-9][0-9][0-9]'),
+    CONSTRAINT CK_LoThuoc_Ngay CHECK (ngaySanXuat IS NULL OR ngaySanXuat <= hanSuDung),
+    CONSTRAINT CK_LoThuoc_SoLuong CHECK (soLuongConLai <= soLuongNhap)
+);
+
 CREATE TABLE ChiTietPhieuNhap (
     maPhieuNhap NVARCHAR(20),
-    maThuoc NVARCHAR(20),
-    soLuong INT NOT NULL CHECK (soLuong >= 0),
+    maLo NVARCHAR(20),
+    soLuong INT NOT NULL CHECK (soLuong > 0),
     donGia DECIMAL(18,2) CHECK (donGia >= 0),
-    PRIMARY KEY (maPhieuNhap, maThuoc),
+    PRIMARY KEY (maPhieuNhap, maLo),
     FOREIGN KEY (maPhieuNhap) REFERENCES PhieuNhapHang(maPhieuNhap),
-    FOREIGN KEY (maThuoc) REFERENCES Thuoc(maThuoc)
+    FOREIGN KEY (maLo) REFERENCES LoThuoc(maLo)
 );
+
+GO
+CREATE VIEW vw_TonKhoThuoc AS
+SELECT
+    t.maThuoc,
+    t.tenThuoc,
+    t.donViTinh,
+    t.giaBan,
+    t.moTa,
+    t.maDanhMuc,
+    t.hinhAnh,
+    t.thanhPhan,
+    t.xuatXu,
+    ISNULL(SUM(l.soLuongConLai), 0) AS soLuongTon,
+    MIN(CASE WHEN l.soLuongConLai > 0 THEN l.hanSuDung END) AS hanSuDungGanNhat
+FROM Thuoc t
+LEFT JOIN LoThuoc l ON t.maThuoc = l.maThuoc
+GROUP BY
+    t.maThuoc, t.tenThuoc, t.donViTinh, t.giaBan,
+    t.moTa, t.maDanhMuc, t.hinhAnh, t.thanhPhan, t.xuatXu;
+GO
 
 CREATE TABLE PhieuDatThuoc (
     maPhieuDat NVARCHAR(20) PRIMARY KEY,
@@ -219,27 +256,27 @@ INSERT INTO KhuyenMai (maKM, tenKM, ngayBatDau, ngayKetThuc, phanTramGiamGia) VA
 (N'KM00004', N'Khuyến mãi Black Friday', '2026-11-25', '2026-11-30', 20.00);
 
 -- Thuoc (TH00001, TH00002, ...)
-INSERT INTO Thuoc (maThuoc, tenThuoc, donViTinh, giaBan, soLuongTon, hanSuDung, moTa, maDanhMuc, hinhAnh, thanhPhan, ngaySanXuat, xuatXu) VALUES
-(N'TH00001', N'Hapacol 650 DHG', N'Hộp 10 vỉ x 10 viên', 25000, 1021, '2025-10-15', N'Thuốc giảm đau, hạ sốt hiệu quả', N'DM00001', N'img_product/hapacol_650_extra_dhg.png', N'Paracetamol 650mg', '2024-02-15', N'Việt Nam'),
-(N'TH00002', N'Bột pha hỗn dịch uống Smecta vị cam', N'Hộp 10 gói', 4000, 1021, '2025-11-21', N'Điều trị tiêu chảy cấp và mạn tính', N'DM00002', N'img_product/bot-pha-hon-dich-uong-smecta.jpg', N'Diosmectite 3g', '2024-05-21', N'Pháp'),
-(N'TH00003', N'Siro C.C Life 100mg/5ml Foripharm', N'Chai 120ml', 30000, 1032, '2025-12-01', N'Bổ sung vitamin C cho cơ thể', N'DM00003', N'img_product/C.c-Life-100MgChai.jpg', N'Vitamin C 100mg/5ml', '2024-03-01', N'Việt Nam'),
-(N'TH00004', N'Panadol Extra đỏ', N'Hộp 12 vỉ x 10 viên', 250000, 1034, '2026-01-07', N'Giảm đau nhanh, hạ sốt hiệu quả', N'DM00001', N'img_product/Panadol-Extra.png', N'Paracetamol 500mg, Caffeine 65mg', '2024-08-07', N'Anh'),
-(N'TH00005', N'Viên sủi Vitatrum C BRV', N'Tuýp 20 viên', 24000, 1076, '2026-02-28', N'Bổ sung vitamin C, tăng cường đề kháng', N'DM00003', N'img_product/vitatrum-c-brv.png', N'Vitamin C 1000mg', '2024-12-31', N'Việt Nam'),
-(N'TH00006', N'Bổ Gan Trường Phúc', N'Hộp 30 viên', 95000, 1034, '2026-03-15', N'Hỗ trợ bảo vệ và phục hồi chức năng gan', N'DM00004', N'img_product/bo-gan-tuong-phu.jpg', N'Diệp hạ châu, Đảng Sâm, Bạch truật, Cam thảo, Phục Linh, Nhân trần, Trần bì', '2024-02-15', N'Việt Nam'),
-(N'TH00007', N'Bài Thạch Trường Phúc', N'Hộp 30 viên', 95000, 1076, '2026-04-10', N'Hỗ trợ điều trị sỏi thận, sỏi mật', N'DM00004', N'img_product/bai-trang-truong-phuc.jpg', N'Xa tiền tử, Bạch mao căn, Sinh Địa, Ý Dĩ, Kim tiền thảo', '2024-02-10', N'Việt Nam'),
-(N'TH00008', N'Đại Tràng Trường Phúc', N'Hộp 30 viên', 105000, 1021, '2026-05-03', N'Hỗ trợ điều trị viêm đại tràng, rối loạn tiêu hóa', N'DM00004', N'img_product/dai-trang-truong-phuc.jpg', N'Hoàng liên, Mộc hương, Bạch truật, Bạch thược, Ngũ bội tử, Hậu phác, Cam thảo, Xa tiền tử, Hoạt thạch', '2024-09-03', N'Việt Nam'),
-(N'TH00009', N'Ninh Tâm Vương Hồng Bàng', N'Hộp 60 viên', 180000, 1054, '2026-06-15', N'Hỗ trợ tim mạch, giảm stress, cải thiện giấc ngủ', N'DM00005', N'img_product/ninh-tam-vuong-hong-bang.png', N'L-Carnitine, Taurine, Đan sâm, Khổ sâm bắc, Nattokinase, Hoàng đằng, Magie', '2024-08-15', N'Việt Nam'),
-(N'TH00010', N'Paracetamol 500mg', N'Hộp 10 vỉ x 10 viên', 15000, 2000, '2026-07-31', N'Thuốc giảm đau, hạ sốt phổ biến', N'DM00001', N'img_product/paracetamol.png', N'Paracetamol 500mg', '2024-06-01', N'Việt Nam'),
-(N'TH00011', N'Amoxicillin 500mg', N'Hộp 10 vỉ x 10 viên', 45000, 1500, '2026-08-20', N'Kháng sinh điều trị nhiễm khuẩn đường hô hấp', N'DM00006', N'img_product/amoxicillin.png', N'Amoxicillin 500mg', '2024-04-20', N'Ấn Độ'),
-(N'TH00012', N'ORS', N'Hộp 20 gói', 50000, 800, '2026-09-15', N'Bù nước và điện giải khi tiêu chảy', N'DM00002', N'img_product/ors.png', N'Natri clorua, Kali clorua, Natri citrat, Glucose', '2025-06-15', N'Thái Lan'),
-(N'TH00013', N'Vitamin B Complex', N'Chai 100 viên', 85000, 600, '2026-10-30', N'Bổ sung vitamin B tổng hợp', N'DM00003', N'img_product/vitamin-b.png', N'Vitamin B1, B2, B6, B12', '2025-03-30', N'Mỹ'),
-(N'TH00014', N'Tây Thi Hoàn', N'Hộp 10 viên', 120000, 450, '2026-11-25', N'Hỗ trợ tiêu hóa, giảm đầy hơi, khó tiêu', N'DM00004', N'img_product/tay-thi-hoan.png', N'Trần bì, Bạch truật, Hậu phác, Mộc hương', '2024-11-25', N'Trung Quốc'),
-(N'TH00015', N'Eugica', N'Hộp 20 gói x 5ml', 85000, 750, '2026-12-10', N'Siro ho, long đờm cho trẻ em', N'DM00007', N'img_product/eugica.png', N'Cao lá bạc hà, Cao lá khuynh diệp, Tinh dầu húng', '2024-07-10', N'Việt Nam'),
-(N'TH00016', N'Cetirizine 10mg', N'Hộp 10 vỉ x 10 viên', 35000, 1200, '2027-01-18', N'Thuốc chống dị ứng', N'DM00008', N'img_product/cetirizine.png', N'Cetirizine dihydrochloride 10mg', '2024-09-18', N'Việt Nam'),
-(N'TH00017', N'Glucosamine 1500mg', N'Hộp 30 gói', 420000, 300, '2027-02-20', N'Hỗ trợ xương khớp', N'DM00004', N'img_product/glucosamine.png', N'Glucosamine sulfate 1500mg', '2025-01-20', N'Hàn Quốc'),
-(N'TH00018', N'Omega 3 Fish Oil', N'Chai 100 viên', 350000, 400, '2027-03-15', N'Bổ sung Omega 3 tốt cho tim mạch', N'DM00003', N'img_product/omega3.png', N'EPA 180mg, DHA 120mg', '2025-04-15', N'Na Uy'),
-(N'TH00019', N'Betadine 10%', N'Chai 125ml', 65000, 850, '2027-04-30', N'Dung dịch sát khuẩn vết thương', N'DM00009', N'img_product/betadine.png', N'Povidone Iodine 10%', '2024-06-30', N'Thái Lan'),
-(N'TH00020', N'Cảm Xuyên Hương', N'Hộp 50 viên', 55000, 950, '2027-10-01', N'Thuốc cảm cúm theo đông y', N'DM00004', N'img_product/cam-xuyen-huong.png', N'Hương nhu, Tử tô, Hoa cúc, Bạc hà', '2024-08-22', N'Việt Nam');
+INSERT INTO Thuoc (maThuoc, tenThuoc, donViTinh, giaBan, moTa, maDanhMuc, hinhAnh, thanhPhan, xuatXu) VALUES
+(N'TH00001', N'Hapacol 650 DHG', N'Hộp 10 vỉ x 10 viên', 25000, N'Thuốc giảm đau, hạ sốt hiệu quả', N'DM00001', N'img_product/hapacol_650_extra_dhg.png', N'Paracetamol 650mg', N'Việt Nam'),
+(N'TH00002', N'Bột pha hỗn dịch uống Smecta vị cam', N'Hộp 10 gói', 4000, N'Điều trị tiêu chảy cấp và mạn tính', N'DM00002', N'img_product/bot-pha-hon-dich-uong-smecta.jpg', N'Diosmectite 3g', N'Pháp'),
+(N'TH00003', N'Siro C.C Life 100mg/5ml Foripharm', N'Chai 120ml', 30000, N'Bổ sung vitamin C cho cơ thể', N'DM00003', N'img_product/C.c-Life-100MgChai.jpg', N'Vitamin C 100mg/5ml', N'Việt Nam'),
+(N'TH00004', N'Panadol Extra đỏ', N'Hộp 12 vỉ x 10 viên', 250000, N'Giảm đau nhanh, hạ sốt hiệu quả', N'DM00001', N'img_product/Panadol-Extra.png', N'Paracetamol 500mg, Caffeine 65mg', N'Anh'),
+(N'TH00005', N'Viên sủi Vitatrum C BRV', N'Tuýp 20 viên', 24000, N'Bổ sung vitamin C, tăng cường đề kháng', N'DM00003', N'img_product/vitatrum-c-brv.png', N'Vitamin C 1000mg', N'Việt Nam'),
+(N'TH00006', N'Bổ Gan Trường Phúc', N'Hộp 30 viên', 95000, N'Hỗ trợ bảo vệ và phục hồi chức năng gan', N'DM00004', N'img_product/bo-gan-tuong-phu.jpg', N'Diệp hạ châu, Đảng Sâm, Bạch truật, Cam thảo, Phục Linh, Nhân trần, Trần bì', N'Việt Nam'),
+(N'TH00007', N'Bài Thạch Trường Phúc', N'Hộp 30 viên', 95000, N'Hỗ trợ điều trị sỏi thận, sỏi mật', N'DM00004', N'img_product/bai-trang-truong-phuc.jpg', N'Xa tiền tử, Bạch mao căn, Sinh Địa, Ý Dĩ, Kim tiền thảo', N'Việt Nam'),
+(N'TH00008', N'Đại Tràng Trường Phúc', N'Hộp 30 viên', 105000, N'Hỗ trợ điều trị viêm đại tràng, rối loạn tiêu hóa', N'DM00004', N'img_product/dai-trang-truong-phuc.jpg', N'Hoàng liên, Mộc hương, Bạch truật, Bạch thược, Ngũ bội tử, Hậu phác, Cam thảo, Xa tiền tử, Hoạt thạch', N'Việt Nam'),
+(N'TH00009', N'Ninh Tâm Vương Hồng Bàng', N'Hộp 60 viên', 180000, N'Hỗ trợ tim mạch, giảm stress, cải thiện giấc ngủ', N'DM00005', N'img_product/ninh-tam-vuong-hong-bang.png', N'L-Carnitine, Taurine, Đan sâm, Khổ sâm bắc, Nattokinase, Hoàng đằng, Magie', N'Việt Nam'),
+(N'TH00010', N'Paracetamol 500mg', N'Hộp 10 vỉ x 10 viên', 15000, N'Thuốc giảm đau, hạ sốt phổ biến', N'DM00001', N'img_product/paracetamol.png', N'Paracetamol 500mg', N'Việt Nam'),
+(N'TH00011', N'Amoxicillin 500mg', N'Hộp 10 vỉ x 10 viên', 45000, N'Kháng sinh điều trị nhiễm khuẩn đường hô hấp', N'DM00006', N'img_product/amoxicillin.png', N'Amoxicillin 500mg', N'Ấn Độ'),
+(N'TH00012', N'ORS', N'Hộp 20 gói', 50000, N'Bù nước và điện giải khi tiêu chảy', N'DM00002', N'img_product/ors.png', N'Natri clorua, Kali clorua, Natri citrat, Glucose', N'Thái Lan'),
+(N'TH00013', N'Vitamin B Complex', N'Chai 100 viên', 85000, N'Bổ sung vitamin B tổng hợp', N'DM00003', N'img_product/vitamin-b.png', N'Vitamin B1, B2, B6, B12', N'Mỹ'),
+(N'TH00014', N'Tây Thi Hoàn', N'Hộp 10 viên', 120000, N'Hỗ trợ tiêu hóa, giảm đầy hơi, khó tiêu', N'DM00004', N'img_product/tay-thi-hoan.png', N'Trần bì, Bạch truật, Hậu phác, Mộc hương', N'Trung Quốc'),
+(N'TH00015', N'Eugica', N'Hộp 20 gói x 5ml', 85000, N'Siro ho, long đờm cho trẻ em', N'DM00007', N'img_product/eugica.png', N'Cao lá bạc hà, Cao lá khuynh diệp, Tinh dầu húng', N'Việt Nam'),
+(N'TH00016', N'Cetirizine 10mg', N'Hộp 10 vỉ x 10 viên', 35000, N'Thuốc chống dị ứng', N'DM00008', N'img_product/cetirizine.png', N'Cetirizine dihydrochloride 10mg', N'Việt Nam'),
+(N'TH00017', N'Glucosamine 1500mg', N'Hộp 30 gói', 420000, N'Hỗ trợ xương khớp', N'DM00004', N'img_product/glucosamine.png', N'Glucosamine sulfate 1500mg', N'Hàn Quốc'),
+(N'TH00018', N'Omega 3 Fish Oil', N'Chai 100 viên', 350000, N'Bổ sung Omega 3 tốt cho tim mạch', N'DM00003', N'img_product/omega3.png', N'EPA 180mg, DHA 120mg', N'Na Uy'),
+(N'TH00019', N'Betadine 10%', N'Chai 125ml', 65000, N'Dung dịch sát khuẩn vết thương', N'DM00009', N'img_product/betadine.png', N'Povidone Iodine 10%', N'Thái Lan'),
+(N'TH00020', N'Cảm Xuyên Hương', N'Hộp 50 viên', 55000, N'Thuốc cảm cúm theo đông y', N'DM00004', N'img_product/cam-xuyen-huong.png', N'Hương nhu, Tử tô, Hoa cúc, Bạc hà', N'Việt Nam');
 
 -- Tạo Phiếu Nhập Hàng 
 INSERT INTO PhieuNhapHang (maPhieuNhap, maNV, maNCC, ngayNhap) VALUES
@@ -294,124 +331,127 @@ INSERT INTO PhieuNhapHang (maPhieuNhap, maNV, maNCC, ngayNhap) VALUES
 
 GO
 -- Chi tiết phiếu nhập để đạt đúng số lượng tồn kho
--- TH00001: Hapacol 650 DHG - Tồn kho mục tiêu: 1021
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00001', N'TH00001', 300, 20000),
-(N'PN00007', N'TH00001', 400, 21000),
-(N'PN00013', N'TH00001', 321, 22000);
+-- Lô thuốc phát sinh từ dữ liệu chi tiết phiếu nhập cũ
+INSERT INTO LoThuoc (maLo, soLo, maThuoc, maPhieuNhap, ngaySanXuat, hanSuDung, soLuongNhap, soLuongConLai, donGiaNhap) VALUES
+(N'L0001', N'SL-TH00001-001', N'TH00001', N'PN00001', '2024-02-15', '2025-10-15', 300, 300, 20000),
+(N'L0002', N'SL-TH00001-002', N'TH00001', N'PN00007', '2024-02-15', '2025-10-15', 400, 400, 21000),
+(N'L0003', N'SL-TH00001-003', N'TH00001', N'PN00013', '2024-02-15', '2025-10-15', 321, 321, 22000),
+(N'L0004', N'SL-TH00002-004', N'TH00002', N'PN00002', '2024-05-21', '2025-11-21', 500, 500, 3000),
+(N'L0005', N'SL-TH00002-005', N'TH00002', N'PN00008', '2024-05-21', '2025-11-21', 321, 321, 3200),
+(N'L0006', N'SL-TH00002-006', N'TH00002', N'PN00014', '2024-05-21', '2025-11-21', 200, 200, 3500),
+(N'L0007', N'SL-TH00003-007', N'TH00003', N'PN00003', '2024-03-01', '2025-12-01', 400, 400, 25000),
+(N'L0008', N'SL-TH00003-008', N'TH00003', N'PN00009', '2024-03-01', '2025-12-01', 332, 332, 26000),
+(N'L0009', N'SL-TH00003-009', N'TH00003', N'PN00015', '2024-03-01', '2025-12-01', 300, 300, 27000),
+(N'L0010', N'SL-TH00004-010', N'TH00004', N'PN00004', '2024-08-07', '2026-01-07', 500, 500, 240000),
+(N'L0011', N'SL-TH00004-011', N'TH00004', N'PN00010', '2024-08-07', '2026-01-07', 334, 334, 245000),
+(N'L0012', N'SL-TH00004-012', N'TH00004', N'PN00016', '2024-08-07', '2026-01-07', 200, 200, 248000),
+(N'L0013', N'SL-TH00005-013', N'TH00005', N'PN00005', '2024-12-31', '2026-02-28', 400, 400, 20000),
+(N'L0014', N'SL-TH00005-014', N'TH00005', N'PN00011', '2024-12-31', '2026-02-28', 376, 376, 21000),
+(N'L0015', N'SL-TH00005-015', N'TH00005', N'PN00017', '2024-12-31', '2026-02-28', 300, 300, 22000),
+(N'L0016', N'SL-TH00006-016', N'TH00006', N'PN00006', '2024-02-15', '2026-03-15', 500, 500, 85000),
+(N'L0017', N'SL-TH00006-017', N'TH00006', N'PN00012', '2024-02-15', '2026-03-15', 334, 334, 88000),
+(N'L0018', N'SL-TH00006-018', N'TH00006', N'PN00018', '2024-02-15', '2026-03-15', 200, 200, 90000),
+(N'L0019', N'SL-TH00007-019', N'TH00007', N'PN00001', '2024-02-10', '2026-04-10', 400, 400, 85000),
+(N'L0020', N'SL-TH00007-020', N'TH00007', N'PN00013', '2024-02-10', '2026-04-10', 376, 376, 88000),
+(N'L0021', N'SL-TH00007-021', N'TH00007', N'PN00019', '2024-02-10', '2026-04-10', 300, 300, 90000),
+(N'L0022', N'SL-TH00008-022', N'TH00008', N'PN00002', '2024-09-03', '2026-05-03', 350, 350, 95000),
+(N'L0023', N'SL-TH00008-023', N'TH00008', N'PN00014', '2024-09-03', '2026-05-03', 371, 371, 98000),
+(N'L0024', N'SL-TH00008-024', N'TH00008', N'PN00020', '2024-09-03', '2026-05-03', 300, 300, 100000),
+(N'L0025', N'SL-TH00009-025', N'TH00009', N'PN00003', '2024-08-15', '2026-06-15', 400, 400, 170000),
+(N'L0026', N'SL-TH00009-026', N'TH00009', N'PN00015', '2024-08-15', '2026-06-15', 354, 354, 175000),
+(N'L0027', N'SL-TH00009-027', N'TH00009', N'PN00021', '2024-08-15', '2026-06-15', 300, 300, 178000),
+(N'L0028', N'SL-TH00010-028', N'TH00010', N'PN00004', '2024-06-01', '2026-07-31', 600, 600, 12000),
+(N'L0029', N'SL-TH00010-029', N'TH00010', N'PN00010', '2024-06-01', '2026-07-31', 700, 700, 12500),
+(N'L0030', N'SL-TH00010-030', N'TH00010', N'PN00016', '2024-06-01', '2026-07-31', 700, 700, 13000),
+(N'L0031', N'SL-TH00011-031', N'TH00011', N'PN00005', '2024-04-20', '2026-08-20', 500, 500, 35000),
+(N'L0032', N'SL-TH00011-032', N'TH00011', N'PN00011', '2024-04-20', '2026-08-20', 500, 500, 37000),
+(N'L0033', N'SL-TH00011-033', N'TH00011', N'PN00022', '2024-04-20', '2026-08-20', 500, 500, 38000),
+(N'L0034', N'SL-TH00012-034', N'TH00012', N'PN00006', '2025-06-15', '2026-09-15', 300, 300, 45000),
+(N'L0035', N'SL-TH00012-035', N'TH00012', N'PN00017', '2025-06-15', '2026-09-15', 300, 300, 46000),
+(N'L0036', N'SL-TH00012-036', N'TH00012', N'PN00023', '2025-06-15', '2026-09-15', 200, 200, 48000),
+(N'L0037', N'SL-TH00013-037', N'TH00013', N'PN00007', '2025-03-30', '2026-10-30', 250, 250, 80000),
+(N'L0038', N'SL-TH00013-038', N'TH00013', N'PN00018', '2025-03-30', '2026-10-30', 200, 200, 82000),
+(N'L0039', N'SL-TH00013-039', N'TH00013', N'PN00024', '2025-03-30', '2026-10-30', 150, 150, 83000),
+(N'L0040', N'SL-TH00014-040', N'TH00014', N'PN00008', '2024-11-25', '2026-11-25', 200, 200, 110000),
+(N'L0041', N'SL-TH00014-041', N'TH00014', N'PN00019', '2024-11-25', '2026-11-25', 150, 150, 115000),
+(N'L0042', N'SL-TH00014-042', N'TH00014', N'PN00025', '2024-11-25', '2026-11-25', 100, 100, 118000),
+(N'L0043', N'SL-TH00015-043', N'TH00015', N'PN00009', '2024-07-10', '2026-12-10', 300, 300, 78000),
+(N'L0044', N'SL-TH00015-044', N'TH00015', N'PN00020', '2024-07-10', '2026-12-10', 250, 250, 80000),
+(N'L0045', N'SL-TH00015-045', N'TH00015', N'PN00026', '2024-07-10', '2026-12-10', 200, 200, 82000),
+(N'L0046', N'SL-TH00016-046', N'TH00016', N'PN00010', '2024-09-18', '2027-01-18', 400, 400, 28000),
+(N'L0047', N'SL-TH00016-047', N'TH00016', N'PN00016', '2024-09-18', '2027-01-18', 400, 400, 30000),
+(N'L0048', N'SL-TH00016-048', N'TH00016', N'PN00027', '2024-09-18', '2027-01-18', 400, 400, 32000),
+(N'L0049', N'SL-TH00017-049', N'TH00017', N'PN00011', '2025-01-20', '2027-02-20', 150, 150, 400000),
+(N'L0050', N'SL-TH00017-050', N'TH00017', N'PN00021', '2025-01-20', '2027-02-20', 150, 150, 410000),
+(N'L0051', N'SL-TH00018-051', N'TH00018', N'PN00012', '2025-04-15', '2027-03-15', 200, 200, 330000),
+(N'L0052', N'SL-TH00018-052', N'TH00018', N'PN00022', '2025-04-15', '2027-03-15', 200, 200, 340000),
+(N'L0053', N'SL-TH00019-053', N'TH00019', N'PN00013', '2024-06-30', '2027-04-30', 350, 350, 60000),
+(N'L0054', N'SL-TH00019-054', N'TH00019', N'PN00023', '2024-06-30', '2027-04-30', 300, 300, 62000),
+(N'L0055', N'SL-TH00019-055', N'TH00019', N'PN00028', '2024-06-30', '2027-04-30', 200, 200, 63000),
+(N'L0056', N'SL-TH00020-056', N'TH00020', N'PN00014', '2024-08-22', '2027-10-01', 400, 400, 50000),
+(N'L0057', N'SL-TH00020-057', N'TH00020', N'PN00024', '2024-08-22', '2027-10-01', 350, 350, 52000),
+(N'L0058', N'SL-TH00020-058', N'TH00020', N'PN00029', '2024-08-22', '2027-10-01', 200, 200, 53000);
 
--- TH00002: Smecta - Tồn kho mục tiêu: 1021
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00002', N'TH00002', 500, 3000),
-(N'PN00008', N'TH00002', 321, 3200),
-(N'PN00014', N'TH00002', 200, 3500);
-
--- TH00003: Siro C.C Life - Tồn kho mục tiêu: 1032
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00003', N'TH00003', 400, 25000),
-(N'PN00009', N'TH00003', 332, 26000),
-(N'PN00015', N'TH00003', 300, 27000);
-
--- TH00004: Panadol Extra - Tồn kho mục tiêu: 1034
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00004', N'TH00004', 500, 240000),
-(N'PN00010', N'TH00004', 334, 245000),
-(N'PN00016', N'TH00004', 200, 248000);
-
--- TH00005: Vitatrum C - Tồn kho mục tiêu: 1076
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00005', N'TH00005', 400, 20000),
-(N'PN00011', N'TH00005', 376, 21000),
-(N'PN00017', N'TH00005', 300, 22000);
-
--- TH00006: Bổ Gan Trường Phúc - Tồn kho mục tiêu: 1034
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00006', N'TH00006', 500, 85000),
-(N'PN00012', N'TH00006', 334, 88000),
-(N'PN00018', N'TH00006', 200, 90000);
-
--- TH00007: Bài Thạch Trường Phúc - Tồn kho mục tiêu: 1076
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00001', N'TH00007', 400, 85000),
-(N'PN00013', N'TH00007', 376, 88000),
-(N'PN00019', N'TH00007', 300, 90000);
-
--- TH00008: Đại Tràng Trường Phúc - Tồn kho mục tiêu: 1021
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00002', N'TH00008', 350, 95000),
-(N'PN00014', N'TH00008', 371, 98000),
-(N'PN00020', N'TH00008', 300, 100000);
-
--- TH00009: Ninh Tâm Vương - Tồn kho mục tiêu: 1054
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00003', N'TH00009', 400, 170000),
-(N'PN00015', N'TH00009', 354, 175000),
-(N'PN00021', N'TH00009', 300, 178000);
-
--- TH00010: Paracetamol 500mg - Tồn kho mục tiêu: 2000
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00004', N'TH00010', 600, 12000),
-(N'PN00010', N'TH00010', 700, 12500),
-(N'PN00016', N'TH00010', 700, 13000);
-
--- TH00011: Amoxicillin 500mg - Tồn kho mục tiêu: 1500
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00005', N'TH00011', 500, 35000),
-(N'PN00011', N'TH00011', 500, 37000),
-(N'PN00022', N'TH00011', 500, 38000);
-
--- TH00012: ORS - Tồn kho mục tiêu: 800
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00006', N'TH00012', 300, 45000),
-(N'PN00017', N'TH00012', 300, 46000),
-(N'PN00023', N'TH00012', 200, 48000);
-
--- TH00013: Vitamin B Complex - Tồn kho mục tiêu: 600
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00007', N'TH00013', 250, 80000),
-(N'PN00018', N'TH00013', 200, 82000),
-(N'PN00024', N'TH00013', 150, 83000);
-
--- TH00014: Tây Thi Hoàn - Tồn kho mục tiêu: 450
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00008', N'TH00014', 200, 110000),
-(N'PN00019', N'TH00014', 150, 115000),
-(N'PN00025', N'TH00014', 100, 118000);
-
--- TH00015: Eugica - Tồn kho mục tiêu: 750
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00009', N'TH00015', 300, 78000),
-(N'PN00020', N'TH00015', 250, 80000),
-(N'PN00026', N'TH00015', 200, 82000);
-
--- TH00016: Cetirizine 10mg - Tồn kho mục tiêu: 1200
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00010', N'TH00016', 400, 28000),
-(N'PN00016', N'TH00016', 400, 30000),
-(N'PN00027', N'TH00016', 400, 32000);
-
--- TH00017: Glucosamine 1500mg - Tồn kho mục tiêu: 300
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00011', N'TH00017', 150, 400000),
-(N'PN00021', N'TH00017', 150, 410000);
-
--- TH00018: Omega 3 Fish Oil - Tồn kho mục tiêu: 400
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00012', N'TH00018', 200, 330000),
-(N'PN00022', N'TH00018', 200, 340000);
-
--- TH00019: Betadine 10% - Tồn kho mục tiêu: 850
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00013', N'TH00019', 350, 60000),
-(N'PN00023', N'TH00019', 300, 62000),
-(N'PN00028', N'TH00019', 200, 63000);
-
--- TH00020: Cảm Xuyên Hương - Tồn kho mục tiêu: 950
-INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maThuoc, soLuong, donGia) VALUES
-(N'PN00014', N'TH00020', 400, 50000),
-(N'PN00024', N'TH00020', 350, 52000),
-(N'PN00029', N'TH00020', 200, 53000);
-
+-- Chi ti?t phi?u nh?p tham chi?u theo l? thu?c
+INSERT INTO ChiTietPhieuNhap (maPhieuNhap, maLo, soLuong, donGia) VALUES
+(N'PN00001', N'L0001', 300, 20000),
+(N'PN00007', N'L0002', 400, 21000),
+(N'PN00013', N'L0003', 321, 22000),
+(N'PN00002', N'L0004', 500, 3000),
+(N'PN00008', N'L0005', 321, 3200),
+(N'PN00014', N'L0006', 200, 3500),
+(N'PN00003', N'L0007', 400, 25000),
+(N'PN00009', N'L0008', 332, 26000),
+(N'PN00015', N'L0009', 300, 27000),
+(N'PN00004', N'L0010', 500, 240000),
+(N'PN00010', N'L0011', 334, 245000),
+(N'PN00016', N'L0012', 200, 248000),
+(N'PN00005', N'L0013', 400, 20000),
+(N'PN00011', N'L0014', 376, 21000),
+(N'PN00017', N'L0015', 300, 22000),
+(N'PN00006', N'L0016', 500, 85000),
+(N'PN00012', N'L0017', 334, 88000),
+(N'PN00018', N'L0018', 200, 90000),
+(N'PN00001', N'L0019', 400, 85000),
+(N'PN00013', N'L0020', 376, 88000),
+(N'PN00019', N'L0021', 300, 90000),
+(N'PN00002', N'L0022', 350, 95000),
+(N'PN00014', N'L0023', 371, 98000),
+(N'PN00020', N'L0024', 300, 100000),
+(N'PN00003', N'L0025', 400, 170000),
+(N'PN00015', N'L0026', 354, 175000),
+(N'PN00021', N'L0027', 300, 178000),
+(N'PN00004', N'L0028', 600, 12000),
+(N'PN00010', N'L0029', 700, 12500),
+(N'PN00016', N'L0030', 700, 13000),
+(N'PN00005', N'L0031', 500, 35000),
+(N'PN00011', N'L0032', 500, 37000),
+(N'PN00022', N'L0033', 500, 38000),
+(N'PN00006', N'L0034', 300, 45000),
+(N'PN00017', N'L0035', 300, 46000),
+(N'PN00023', N'L0036', 200, 48000),
+(N'PN00007', N'L0037', 250, 80000),
+(N'PN00018', N'L0038', 200, 82000),
+(N'PN00024', N'L0039', 150, 83000),
+(N'PN00008', N'L0040', 200, 110000),
+(N'PN00019', N'L0041', 150, 115000),
+(N'PN00025', N'L0042', 100, 118000),
+(N'PN00009', N'L0043', 300, 78000),
+(N'PN00020', N'L0044', 250, 80000),
+(N'PN00026', N'L0045', 200, 82000),
+(N'PN00010', N'L0046', 400, 28000),
+(N'PN00016', N'L0047', 400, 30000),
+(N'PN00027', N'L0048', 400, 32000),
+(N'PN00011', N'L0049', 150, 400000),
+(N'PN00021', N'L0050', 150, 410000),
+(N'PN00012', N'L0051', 200, 330000),
+(N'PN00022', N'L0052', 200, 340000),
+(N'PN00013', N'L0053', 350, 60000),
+(N'PN00023', N'L0054', 300, 62000),
+(N'PN00028', N'L0055', 200, 63000),
+(N'PN00014', N'L0056', 400, 50000),
+(N'PN00024', N'L0057', 350, 52000),
+(N'PN00029', N'L0058', 200, 53000);
 
 -- PhieuDatThuoc (PDT00001, PDT00002, ...)
 INSERT INTO PhieuDatThuoc (maPhieuDat, ngayDat, maKH, diaChi, hinhThucThanhToan, trangThai) VALUES
@@ -652,6 +692,23 @@ END;
 GO
 
 -- Hàm tạo mã Thuế
+-- Hàm tạo mã Lô Thuốc
+CREATE FUNCTION fn_GenerateMaLo()
+RETURNS NVARCHAR(20)
+AS
+BEGIN
+    DECLARE @maxNumber INT;
+    DECLARE @newMa NVARCHAR(20);
+
+    SELECT @maxNumber = ISNULL(MAX(CAST(SUBSTRING(maLo, 2, 4) AS INT)), 0)
+    FROM LoThuoc
+    WHERE maLo LIKE 'L[0-9][0-9][0-9][0-9]';
+
+    SET @newMa = 'L' + RIGHT('0000' + CAST(@maxNumber + 1 AS VARCHAR), 4);
+    RETURN @newMa;
+END;
+GO
+
 CREATE FUNCTION fn_GenerateMaThue()
 RETURNS NVARCHAR(20)
 AS
@@ -681,6 +738,7 @@ SELECT dbo.fn_GenerateMaHD() AS MaHDMoi;
 SELECT dbo.fn_GenerateMaKM() AS MaKMMoi;
 SELECT dbo.fn_GenerateMaPhieuDat() AS MaPhieuDatMoi;
 SELECT dbo.fn_GenerateMaPhieuNhap() AS MaPhieuNhapMoi;
+SELECT dbo.fn_GenerateMaLo() AS MaLoMoi;
 SELECT dbo.fn_GenerateMaThue() AS MaThueMoi;
 
 PRINT N'';

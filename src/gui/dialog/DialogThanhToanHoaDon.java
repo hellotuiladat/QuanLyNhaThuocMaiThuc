@@ -31,6 +31,7 @@ import com.itextpdf.text.pdf.PdfPTable;
 
 import dao.ThueDAO;
 import dao.ThuocDAO;
+import dao.LoThuocDAO;
 import dao.ChiTietHoaDonDAO;
 import dao.HoaDonDAO;
 import dao.KhachHangDAO;
@@ -70,6 +71,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
 	private HoaDonDAO hdDAO;
 	private ChiTietHoaDonDAO cthdDAO;
 	private ThuocDAO thuocDAO;
+	private LoThuocDAO loThuocDAO;
 	private KhachHangDAO khDAO;
 	private JPanel mainPanel;
 	private KhuyenMai khuyenMaiApDung;
@@ -84,6 +86,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
         super(parent, "Chi Tiết Hóa Đơn", true);
         thueDAO = new ThueDAO();
         thuocDAO = new ThuocDAO();
+        loThuocDAO = new LoThuocDAO();
         nhanVienDAO = new NhanVienDAO();
         cthdDAO = new ChiTietHoaDonDAO();
         hdDAO = new HoaDonDAO();
@@ -521,11 +524,10 @@ public class DialogThanhToanHoaDon extends JDialog  {
 		        	            int soLuongBan = cthd.getSoLuong();
 		
 		        	            // Lấy số lượng tồn hiện tại
-		        	            int soLuongTonCu = thuocDAO.getSoLuongTonTheoMaThuoc(maThuoc);
-		        	            int soLuongMoi = Math.max(0, soLuongTonCu - soLuongBan);
-		
-		        	            if (thuocDAO.updateSoLuongTonTheoMaThuoc(maThuoc, soLuongMoi)) {
-		        	                System.out.println("✓ Cập nhật tồn kho thuốc " + maThuoc + ": " + soLuongMoi);
+		        	            if (!loThuocDAO.truTonTheoFEFO(maThuoc, soLuongBan)) {
+		        	                allSuccess = false;
+		        	                JOptionPane.showMessageDialog(this, "Ton kho lo khong du cho thuoc " + maThuoc);
+		        	                break;
 		        	            }
 	            	        }
 	            	    }

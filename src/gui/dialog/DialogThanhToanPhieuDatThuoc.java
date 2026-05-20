@@ -53,6 +53,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
     private HoaDonDAO hdDAO;
     private ChiTietHoaDonDAO cthdDAO;
     private ThuocDAO thuocDAO;
+    private LoThuocDAO loThuocDAO;
     private KhachHangDAO khDAO;
     private PhieuDatThuocDAO pdtDAO;
     private NhanVienDAO nhanVienDAO;
@@ -68,6 +69,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         // Khởi tạo các DAO
         thueDAO = new ThueDAO();
         thuocDAO = new ThuocDAO();
+        loThuocDAO = new LoThuocDAO();
         nhanVienDAO = new NhanVienDAO();
         hdDAO = new HoaDonDAO();
         khDAO = new KhachHangDAO();
@@ -487,7 +489,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
                         } else {
                             String maThuoc = cthd.getThuoc().getMaThuoc();
                             int soLuongBan = cthd.getSoLuong();
-                            if (!thuocDAO.truSoLuongTonTheoMaThuoc(maThuoc, soLuongBan)) {
+                            if (!loThuocDAO.truTonTheoFEFO(maThuoc, soLuongBan)) {
                                 allSuccess = false;
                                 JOptionPane.showMessageDialog(this,
                                         "Không đủ tồn kho để cập nhật thuốc " + maThuoc,
