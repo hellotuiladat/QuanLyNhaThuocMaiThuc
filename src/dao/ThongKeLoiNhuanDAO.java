@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import ConnectDB.DatabaseConnection;
 
 public class ThongKeLoiNhuanDAO {
+    private static final String DOANH_THU_SAU_THUE_KM =
+            "(cthd.soLuong * cthd.donGia "
+            + "* (1 - ISNULL(km.phanTramGiamGia, 0) / 100.0) "
+            + "* (1 + ISNULL(thue.phanTramThue, 0) / 100.0))";
     
     /**
      * Class để lưu thông tin thống kê sản phẩm
@@ -152,10 +156,12 @@ public class ThongKeLoiNhuanDAO {
                     "t.maThuoc, " +
                     "t.tenThuoc, " +
                     "SUM(cthd.soLuong) as soLuongBan, " +
-                    "SUM(cthd.soLuong * cthd.donGia) as doanhThu " +
+                    "SUM(" + DOANH_THU_SAU_THUE_KM + ") as doanhThu " +
                     "FROM ChiTietHoaDon cthd " +
                     "INNER JOIN HoaDon hd ON cthd.maHD = hd.maHD " +
                     "INNER JOIN Thuoc t ON cthd.maThuoc = t.maThuoc " +
+                    "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM " +
+                    "LEFT JOIN Thue thue ON hd.maThue = thue.maThue " +
                     "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
                     "GROUP BY t.maThuoc, t.tenThuoc " +
                     "ORDER BY doanhThu DESC";
@@ -195,15 +201,17 @@ public class ThongKeLoiNhuanDAO {
         ArrayList<ThongKeKhachHang> ketQua = new ArrayList<>();
         
         String sql = "SELECT " +
-                    "kh.maKH, " +
-                    "kh.hoTen, " +
+                    "COALESCE(kh.maKH, 'KHACHLE') as maKH, " +
+                    "COALESCE(kh.hoTen, N'Khách lẻ') as hoTen, " +
                     "COUNT(DISTINCT hd.maHD) as soHoaDon, " +
-                    "SUM(cthd.soLuong * cthd.donGia) as tongTienMua " +
+                    "SUM(" + DOANH_THU_SAU_THUE_KM + ") as tongTienMua " +
                     "FROM HoaDon hd " +
-                    "INNER JOIN KhachHang kh ON hd.maKH = kh.maKH " +
+                    "LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH " +
                     "INNER JOIN ChiTietHoaDon cthd ON hd.maHD = cthd.maHD " +
+                    "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM " +
+                    "LEFT JOIN Thue thue ON hd.maThue = thue.maThue " +
                     "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
-                    "GROUP BY kh.maKH, kh.hoTen " +
+                    "GROUP BY COALESCE(kh.maKH, 'KHACHLE'), COALESCE(kh.hoTen, N'Khách lẻ') " +
                     "ORDER BY tongTienMua DESC";
         
         Connection con = null;
@@ -244,10 +252,12 @@ public class ThongKeLoiNhuanDAO {
                     "nv.maNV, " +
                     "nv.hoTen, " +
                     "COUNT(DISTINCT hd.maHD) as soHoaDonBan, " +
-                    "SUM(cthd.soLuong * cthd.donGia) as doanhThu " +
+                    "SUM(" + DOANH_THU_SAU_THUE_KM + ") as doanhThu " +
                     "FROM HoaDon hd " +
                     "INNER JOIN NhanVien nv ON hd.maNV = nv.maNV " +
                     "INNER JOIN ChiTietHoaDon cthd ON hd.maHD = cthd.maHD " +
+                    "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM " +
+                    "LEFT JOIN Thue thue ON hd.maThue = thue.maThue " +
                     "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
                     "GROUP BY nv.maNV, nv.hoTen " +
                     "ORDER BY doanhThu DESC";
@@ -290,10 +300,12 @@ public class ThongKeLoiNhuanDAO {
                     "t.maThuoc, " +
                     "t.tenThuoc, " +
                     "SUM(cthd.soLuong) as soLuongBan, " +
-                    "SUM(cthd.soLuong * cthd.donGia) as doanhThu " +
+                    "SUM(" + DOANH_THU_SAU_THUE_KM + ") as doanhThu " +
                     "FROM ChiTietHoaDon cthd " +
                     "INNER JOIN HoaDon hd ON cthd.maHD = hd.maHD " +
                     "INNER JOIN Thuoc t ON cthd.maThuoc = t.maThuoc " +
+                    "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM " +
+                    "LEFT JOIN Thue thue ON hd.maThue = thue.maThue " +
                     "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
                     "GROUP BY t.maThuoc, t.tenThuoc " +
                     "ORDER BY soLuongBan DESC, doanhThu DESC";
@@ -334,9 +346,11 @@ public class ThongKeLoiNhuanDAO {
         
         String sql = "SELECT " +
                     "CONVERT(VARCHAR(10), CAST(hd.ngayLap AS DATE), 103) as ngay, " +
-                    "SUM(cthd.soLuong * cthd.donGia) as doanhThu " +
+                    "SUM(" + DOANH_THU_SAU_THUE_KM + ") as doanhThu " +
                     "FROM HoaDon hd " +
                     "INNER JOIN ChiTietHoaDon cthd ON hd.maHD = cthd.maHD " +
+                    "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM " +
+                    "LEFT JOIN Thue thue ON hd.maThue = thue.maThue " +
                     "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
                     "GROUP BY CAST(hd.ngayLap AS DATE) " +
                     "ORDER BY CAST(hd.ngayLap AS DATE) ASC";
@@ -376,9 +390,11 @@ public class ThongKeLoiNhuanDAO {
         String sql = "SELECT " +
                     "MONTH(hd.ngayLap) as thang, " +
                     "YEAR(hd.ngayLap) as nam, " +
-                    "SUM(cthd.soLuong * cthd.donGia) as doanhThu " +
+                    "SUM(" + DOANH_THU_SAU_THUE_KM + ") as doanhThu " +
                     "FROM HoaDon hd " +
                     "INNER JOIN ChiTietHoaDon cthd ON hd.maHD = cthd.maHD " +
+                    "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM " +
+                    "LEFT JOIN Thue thue ON hd.maThue = thue.maThue " +
                     "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
                     "GROUP BY YEAR(hd.ngayLap), MONTH(hd.ngayLap) " +
                     "ORDER BY YEAR(hd.ngayLap) ASC, MONTH(hd.ngayLap) ASC";
@@ -419,9 +435,11 @@ public class ThongKeLoiNhuanDAO {
         
         String sql = "SELECT " +
                     "YEAR(hd.ngayLap) as nam, " +
-                    "SUM(cthd.soLuong * cthd.donGia) as doanhThu " +
+                    "SUM(" + DOANH_THU_SAU_THUE_KM + ") as doanhThu " +
                     "FROM HoaDon hd " +
                     "INNER JOIN ChiTietHoaDon cthd ON hd.maHD = cthd.maHD " +
+                    "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM " +
+                    "LEFT JOIN Thue thue ON hd.maThue = thue.maThue " +
                     "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
                     "GROUP BY YEAR(hd.ngayLap) " +
                     "ORDER BY YEAR(hd.ngayLap) ASC";

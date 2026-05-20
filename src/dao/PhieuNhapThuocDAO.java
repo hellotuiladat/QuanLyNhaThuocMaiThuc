@@ -153,6 +153,10 @@ public class PhieuNhapThuocDAO {
             boolean oldAutoCommit = con.getAutoCommit();
             con.setAutoCommit(false);
             try {
+                if (coLoDaPhatSinhBanHang(con, pnh.getMaPhieuNhap())) {
+                    throw new SQLException("Khong the cap nhat phieu nhap vi da co lo thuoc phat sinh ban hang");
+                }
+
                 try (PreparedStatement stmt = con.prepareStatement(sqlUpdatePhieu)) {
                     stmt.setString(1, pnh.getNhanVien().getMaNV());
                     stmt.setString(2, pnh.getNhaCungCap().getMaNCC());
@@ -276,12 +280,12 @@ public class PhieuNhapThuocDAO {
             params.add("%" + maPhieuNhap + "%");
         }
         if (maNV != null && !maNV.isEmpty()) {
-            sql.append(" AND maNV = ?");
-            params.add(maNV);
+            sql.append(" AND maNV LIKE ?");
+            params.add("%" + maNV + "%");
         }
         if (maNCC != null && !maNCC.isEmpty()) {
-            sql.append(" AND maNCC = ?");
-            params.add(maNCC);
+            sql.append(" AND maNCC LIKE ?");
+            params.add("%" + maNCC + "%");
         }
         if (ngayTu != null) {
             sql.append(" AND ngayNhap >= ?");
@@ -339,6 +343,16 @@ public class PhieuNhapThuocDAO {
         }
         if (ct.getSoLuong() <= 0 || ct.getDonGia() < 0) {
             throw new SQLException("So luong phai > 0 va gia khong duoc am");
+        }
+    }
+
+    private boolean coLoDaPhatSinhBanHang(Connection con, String maPhieuNhap) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM LoThuoc WHERE maPhieuNhap = ? AND soLuongConLai < soLuongNhap";
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, maPhieuNhap);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
         }
     }
 }

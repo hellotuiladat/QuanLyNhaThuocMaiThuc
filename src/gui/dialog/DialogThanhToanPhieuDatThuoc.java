@@ -153,7 +153,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         row1.add(lblNgayDatLabel);
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm: ss");
-        lblNgayLap = new JLabel(sdf.format(ngayDat));
+        lblNgayLap = new JLabel(sdf.format(new Date()));
         lblNgayLap.setFont(valueFont);
         row1.add(lblNgayLap);
 
@@ -474,45 +474,19 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
                 return;
             }
             
-            HoaDon hd = new HoaDon(maHD, ngayDat, thueInfo.get(), nv, kh,
+            Date ngayThanhToan = new Date();
+            HoaDon hd = new HoaDon(maHD, ngayThanhToan, thueInfo.get(), nv, kh,
                     khuyenMaiApDung, new PhieuDatThuoc(maPhieuDatGlobal));
             
             try {
-                if (hdDAO.themHoaDon(hd)) {
-                    boolean allSuccess = true;
-                    
-                    for (ChiTietPhieuDatThuoc ctpdt : dsPhieuDatThuoc) {
-                        ChiTietHoaDon cthd = new ChiTietHoaDon(new HoaDon(maHD), ctpdt. getThuoc(), ctpdt.getSoLuong(), ctpdt.getDonGia());
-                        if (!cthdDAO.themChiTietHoaDon(cthd)) {
-                            allSuccess = false;
-                            break;
-                        } else {
-                            String maThuoc = cthd.getThuoc().getMaThuoc();
-                            int soLuongBan = cthd.getSoLuong();
-                            if (!loThuocDAO.truTonTheoFEFO(maThuoc, soLuongBan)) {
-                                allSuccess = false;
-                                JOptionPane.showMessageDialog(this,
-                                        "Không đủ tồn kho để cập nhật thuốc " + maThuoc,
-                                        "Lỗi tồn kho",
-                                        JOptionPane.ERROR_MESSAGE);
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if (allSuccess) {
-                        if (maPhieuDatGlobal != null && !maPhieuDatGlobal.isEmpty()) {
-                            if (pdtDAO.capNhatTrangThaiPhieuDatThuoc(maPhieuDatGlobal, "Đã hoàn thành")) {
-                                System.out.println("✓ Đã cập nhật trạng thái phiếu đặt:  " + maPhieuDatGlobal);
-                            } else {
-                                JOptionPane.showMessageDialog(
-                                        this,
-                                        "Không thể cập nhật trạng thái phiếu đặt sau khi thanh toán.",
-                                        "Cảnh báo",
-                                        JOptionPane.WARNING_MESSAGE
-                                );
-                            }
-                        }
+                ArrayList<ChiTietHoaDon> dsChiTietHoaDon = new ArrayList<>();
+                for (ChiTietPhieuDatThuoc ctpdt : dsPhieuDatThuoc) {
+                    dsChiTietHoaDon.add(new ChiTietHoaDon(new HoaDon(maHD), ctpdt.getThuoc(),
+                            ctpdt.getSoLuong(), ctpdt.getDonGia()));
+                }
+
+                if (hdDAO.thanhToanPhieuDat(hd, dsChiTietHoaDon, maPhieuDatGlobal)) {
+                    System.out.println("✓ Đã cập nhật trạng thái phiếu đặt:  " + maPhieuDatGlobal);
                         
                         // ✅ FIX:  Gán mã hóa đơn để in
                         lblMaHoaDon = new JLabel(maHD);
@@ -527,11 +501,8 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
                             this.dispose();
                         }
                         
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Lỗi khi thêm chi tiết hóa đơn");
-                    }
                 } else {
-                    JOptionPane. showMessageDialog(this, "Lỗi khi tạo hóa đơn");
+                    JOptionPane. showMessageDialog(this, "Lỗi khi thanh toán phiếu đặt");
                 }
 
             } catch (SQLException e1) {

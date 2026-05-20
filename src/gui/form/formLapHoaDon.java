@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -87,6 +88,7 @@ public class formLapHoaDon extends JPanel {
     private String currentMaThuoc = "";
     private double tongTien = 0;
     private final Map<String, Date> hanSuDungMap = new HashMap<>();
+    private boolean daCanhBaoKyTuTimKiem = false;
 
     // GUI Components - Main Structure
     private JPanel pnlChinh;
@@ -404,7 +406,12 @@ public class formLapHoaDon extends JPanel {
         pnlBangThuoc.setBorder(new LineBorder(new Color(237, 237, 237), 2, true));
 
         String[] headers = {"STT", "Mã thuốc", "Tên thuốc", "Danh mục", "Xuất xứ", "Đơn vị tính", "Số lượng tồn", "Đơn giá (VND)"};
-        modelDanhSachThuoc = new DefaultTableModel(headers, 0);
+        modelDanhSachThuoc = new DefaultTableModel(headers, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tblDanhSachThuoc = new JTable(modelDanhSachThuoc);
         tblDanhSachThuoc.getTableHeader().setFont(new Font("Time New Roman", Font.BOLD, 20));
         tblDanhSachThuoc.setFont(new Font("Segoe UI", Font.PLAIN, 15));
@@ -463,7 +470,12 @@ public class formLapHoaDon extends JPanel {
         pnlGioHang.add(pnlHeaderGioHang, BorderLayout.NORTH);
 
         String[] cartHeaders = {"STT", "Tên thuốc", "Số lượng", "Đơn giá", "Thành tiền"};
-        modelGioHang = new DefaultTableModel(cartHeaders, 0);
+        modelGioHang = new DefaultTableModel(cartHeaders, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tblGioHang = new JTable(modelGioHang);
         tblGioHang.getTableHeader().setFont(new Font("Arial", Font.BOLD, 16));
         tblGioHang.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -1052,8 +1064,23 @@ public class formLapHoaDon extends JPanel {
         String keyword = txtTimKiem.getText().trim();
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modelDanhSachThuoc);
         tblDanhSachThuoc.setRowSorter(sorter);
-        if (keyword.length() == 0) sorter.setRowFilter(null);
-        else sorter.setRowFilter(RowFilter.regexFilter("(?i)" + keyword));
+        if (keyword.length() == 0) {
+            daCanhBaoKyTuTimKiem = false;
+            sorter.setRowFilter(null);
+        } else if (coKyTuDacBietTimKiem(keyword)) {
+            sorter.setRowFilter(null);
+            if (!daCanhBaoKyTuTimKiem) {
+                daCanhBaoKyTuTimKiem = true;
+                showWarning("Từ khóa tìm kiếm không được chứa ký tự đặc biệt: \\ [ ] { } ( ) + * ? ^ $ |");
+            }
+        } else {
+            daCanhBaoKyTuTimKiem = false;
+            sorter.setRowFilter(RowFilter.regexFilter("(?iu)" + Pattern.quote(keyword)));
+        }
+    }
+
+    private boolean coKyTuDacBietTimKiem(String keyword) {
+        return keyword.matches(".*[\\\\\\[\\]{}()+*?^$|].*");
     }
 
     private void loadKhuyenMai() {

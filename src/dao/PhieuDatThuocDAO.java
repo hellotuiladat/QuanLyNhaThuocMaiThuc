@@ -95,19 +95,73 @@ public class PhieuDatThuocDAO {
     }
 
     public boolean themPhieuDatThuoc(PhieuDatThuoc pdt) throws SQLException {
+    	try (Connection con = getSafeConnection()) {
+    		return themPhieuDatThuoc(con, pdt);
+    	}
+    }
+
+    public boolean taoPhieuDatVaTruTon(PhieuDatThuoc pdt, ArrayList<ChiTietPhieuDatThuoc> dsChiTiet)
+            throws SQLException {
+        if (pdt == null || dsChiTiet == null || dsChiTiet.isEmpty()) {
+            throw new SQLException("Phieu dat phai co it nhat mot chi tiet");
+        }
+
+        try (Connection con = getSafeConnection()) {
+            boolean oldAutoCommit = con.getAutoCommit();
+            con.setAutoCommit(false);
+            try {
+                if (!themPhieuDatThuoc(con, pdt)) {
+                    con.rollback();
+                    return false;
+                }
+
+                LoThuocDAO loDAO = new LoThuocDAO();
+                for (ChiTietPhieuDatThuoc ct : dsChiTiet) {
+                    ct.getPhieuDatThuoc().setMaPhieuDat(pdt.getMaPhieuDat());
+                    if (!themChiTietPhieuDatThuoc(con, ct)) {
+                        con.rollback();
+                        return false;
+                    }
+                    String maThuoc = ct.getThuoc().getMaThuoc();
+                    if (!loDAO.truTonTheoFEFO(con, maThuoc, ct.getSoLuong())) {
+                        throw new SQLException("Ton kho lo khong du cho thuoc " + maThuoc);
+                    }
+                }
+
+                con.commit();
+                return true;
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(oldAutoCommit);
+            }
+        }
+    }
+
+    private boolean themPhieuDatThuoc(Connection con, PhieuDatThuoc pdt) throws SQLException {
     	String sql = "INSERT PhieuDatThuoc(maPhieuDat,ngayDat,maKH,diaChi,hinhThucThanhToan"
     			+ ",trangThai) VALUES(?,?,?,?,?,?)";
-    	try (Connection con = getSafeConnection()) {
-    		PreparedStatement stmt = con.prepareStatement(sql);
+		try (PreparedStatement stmt = con.prepareStatement(sql)) {
     		stmt.setString(1, pdt.getMaPhieuDat());
-    		stmt.setDate(2,  (Date) pdt.getNgayDat());
+    		stmt.setDate(2, new Date(pdt.getNgayDat().getTime()));
     		stmt.setString(3, pdt.getKhachHang().getMaKH());
     		stmt.setString(4, pdt.getDiaChi());
     		stmt.setString(5, pdt.getHinhThucThanhToan());
     		stmt.setString(6, pdt.getTrangThai());
-    		
-    		int rowAffected = stmt.executeUpdate();
-    		return rowAffected > 0;
+    		return stmt.executeUpdate() > 0;
+    	}
+    }
+
+    private boolean themChiTietPhieuDatThuoc(Connection con, ChiTietPhieuDatThuoc ctpdt) throws SQLException {
+    	String sql = "INSERT ChiTietPhieuDatThuoc (maPhieuDat,maThuoc,soLuong,donGia)"
+    			+ " VALUES (?,?,?,?)";
+    	try (PreparedStatement stmt = con.prepareStatement(sql)) {
+    		stmt.setString(1, ctpdt.getPhieuDatThuoc().getMaPhieuDat());
+    		stmt.setString(2, ctpdt.getThuoc().getMaThuoc());
+    		stmt.setInt(3, ctpdt.getSoLuong());
+    		stmt.setDouble(4, ctpdt.getDonGia());
+    		return stmt.executeUpdate() > 0;
     	}
     }
 }

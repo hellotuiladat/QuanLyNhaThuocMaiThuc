@@ -24,6 +24,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -93,6 +94,7 @@ public class formThemPhieuDatThuoc extends JPanel {
     private String currentMaThuoc = "";
     private double tongTien = 0;
     private final Map<String, Date> hanSuDungMap = new HashMap<>();
+    private boolean daCanhBaoKyTuTimKiem = false;
 
     private JPanel pnlChinh;
     private JPanel pnlTopWrapper; // Chứa Khuyến mãi + Thông tin thuốc
@@ -402,7 +404,12 @@ public class formThemPhieuDatThuoc extends JPanel {
         pnlBangThuoc.setBorder(new LineBorder(new Color(237, 237, 237), 2, true));
 
         String[] headers = {"STT", "Mã thuốc", "Tên thuốc", "Danh mục", "Xuất xứ", "Đơn vị tính", "Số lượng tồn", "Đơn giá (VND)"};
-        modelDanhSachThuoc = new DefaultTableModel(headers, 0);
+        modelDanhSachThuoc = new DefaultTableModel(headers, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tblDanhSachThuoc = new JTable(modelDanhSachThuoc);
         tblDanhSachThuoc.getTableHeader().setFont(new Font("Time New Roman", Font.BOLD, 20));
         tblDanhSachThuoc.setFont(new Font("Segoe UI", Font.PLAIN, 15));
@@ -461,7 +468,12 @@ public class formThemPhieuDatThuoc extends JPanel {
         pnlGioHang.add(pnlHeaderGioHang, BorderLayout.NORTH);
 
         String[] cartHeaders = {"STT", "Tên thuốc", "Số lượng", "Đơn giá", "Thành tiền"};
-        modelGioHang = new DefaultTableModel(cartHeaders, 0);
+        modelGioHang = new DefaultTableModel(cartHeaders, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tblGioHang = new JTable(modelGioHang);
         tblGioHang.getTableHeader().setFont(new Font("Arial", Font.BOLD, 16));
         tblGioHang.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -603,8 +615,8 @@ public class formThemPhieuDatThuoc extends JPanel {
 			try {
 				btnDatThuoc(evt);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				showError("Không thể đặt thuốc: " + e.getMessage());
 			}
 		});
 
@@ -926,12 +938,11 @@ public class formThemPhieuDatThuoc extends JPanel {
         	String hinhThucThanhToan = cboHinhThucThanhToan.getSelectedItem().toString();
         	String trangThai = "Chưa hoàn thành";
         	PhieuDatThuoc pdt = new PhieuDatThuoc(maPhieuDat, ngayDat, khachHang, diaChi, hinhThucThanhToan, trangThai);
-        	if (pdtDAO.themPhieuDatThuoc(pdt)) {
-        		for (ChiTietPhieuDatThuoc ctpdt : dsChiTietPhieuDatThuoc) {
-        			ctpdt.getPhieuDatThuoc().setMaPhieuDat(maPhieuDat);
-        			ctpdtDAO.themChiTietPhieuDatThuoc(ctpdt);
-        		}
-        		showSuccess("Đặt thuốc thành công");
+    		for (ChiTietPhieuDatThuoc ctpdt : dsChiTietPhieuDatThuoc) {
+    			ctpdt.getPhieuDatThuoc().setMaPhieuDat(maPhieuDat);
+    		}
+        	if (pdtDAO.taoPhieuDatVaTruTon(pdt, dsChiTietPhieuDatThuoc)) {
+        		showSuccess("Đặt thuốc thành công. Tồn kho đã được cập nhật.");
         		resetForm();
         	}
         }
@@ -981,8 +992,23 @@ public class formThemPhieuDatThuoc extends JPanel {
         // Table Sorter giúp tìm kiếm dữ liệu ngay trên bảng
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modelDanhSachThuoc);
         tblDanhSachThuoc.setRowSorter(sorter);
-        if (keyword.length() == 0) sorter.setRowFilter(null);
-        else sorter.setRowFilter(RowFilter.regexFilter("(?i)" + keyword)); // Không phân biệt chữ hoa hay thường
+        if (keyword.length() == 0) {
+            daCanhBaoKyTuTimKiem = false;
+            sorter.setRowFilter(null);
+        } else if (coKyTuDacBietTimKiem(keyword)) {
+            sorter.setRowFilter(null);
+            if (!daCanhBaoKyTuTimKiem) {
+                daCanhBaoKyTuTimKiem = true;
+                showWarning("Từ khóa tìm kiếm không được chứa ký tự đặc biệt: \\ [ ] { } ( ) + * ? ^ $ |");
+            }
+        } else {
+            daCanhBaoKyTuTimKiem = false;
+            sorter.setRowFilter(RowFilter.regexFilter("(?iu)" + Pattern.quote(keyword))); // Không phân biệt chữ hoa hay thường
+        }
+    }
+
+    private boolean coKyTuDacBietTimKiem(String keyword) {
+        return keyword.matches(".*[\\\\\\[\\]{}()+*?^$|].*");
     }
 
     private void loadKhuyenMai() {

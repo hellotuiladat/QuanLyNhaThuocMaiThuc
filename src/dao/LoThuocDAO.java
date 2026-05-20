@@ -118,59 +118,71 @@ public class LoThuocDAO {
             return true;
         }
 
-        String selectSql = "SELECT maLo, soLuongConLai FROM LoThuoc "
-                + "WHERE maThuoc = ? AND soLuongConLai > 0 ORDER BY hanSuDung ASC, maLo ASC";
-        String updateSql = "UPDATE LoThuoc SET soLuongConLai = ?, trangThai = ? WHERE maLo = ?";
-
         try (Connection con = getSafeConnection()) {
             boolean oldAutoCommit = con.getAutoCommit();
             con.setAutoCommit(false);
             try {
-                ArrayList<String> maLos = new ArrayList<>();
-                ArrayList<Integer> soLuongs = new ArrayList<>();
-                int tongTon = 0;
-
-                try (PreparedStatement stmt = con.prepareStatement(selectSql)) {
-                    stmt.setString(1, maThuoc);
-                    try (ResultSet rs = stmt.executeQuery()) {
-                        while (rs.next()) {
-                            maLos.add(rs.getString("maLo"));
-                            int conLai = rs.getInt("soLuongConLai");
-                            soLuongs.add(conLai);
-                            tongTon += conLai;
-                        }
-                    }
-                }
-
-                if (tongTon < soLuongBan) {
+                boolean ok = truTonTheoFEFO(con, maThuoc, soLuongBan);
+                if (!ok) {
                     con.rollback();
                     return false;
                 }
-
-                int canTru = soLuongBan;
-                try (PreparedStatement stmt = con.prepareStatement(updateSql)) {
-                    for (int i = 0; i < maLos.size() && canTru > 0; i++) {
-                        int hienTai = soLuongs.get(i);
-                        int tru = Math.min(hienTai, canTru);
-                        int moi = hienTai - tru;
-                        stmt.setInt(1, moi);
-                        stmt.setString(2, moi == 0 ? "Hết hàng" : "Còn hàng");
-                        stmt.setString(3, maLos.get(i));
-                        stmt.addBatch();
-                        canTru -= tru;
-                    }
-                    stmt.executeBatch();
-                }
-
                 con.commit();
-                con.setAutoCommit(oldAutoCommit);
                 return true;
             } catch (SQLException e) {
                 con.rollback();
-                con.setAutoCommit(oldAutoCommit);
                 throw e;
+            } finally {
+                con.setAutoCommit(oldAutoCommit);
             }
         }
+    }
+
+    boolean truTonTheoFEFO(Connection con, String maThuoc, int soLuongBan) throws SQLException {
+        if (soLuongBan <= 0) {
+            return true;
+        }
+
+        String selectSql = "SELECT maLo, soLuongConLai FROM LoThuoc "
+                + "WHERE maThuoc = ? AND soLuongConLai > 0 ORDER BY hanSuDung ASC, maLo ASC";
+        String updateSql = "UPDATE LoThuoc SET soLuongConLai = ?, trangThai = ? WHERE maLo = ?";
+
+        ArrayList<String> maLos = new ArrayList<>();
+        ArrayList<Integer> soLuongs = new ArrayList<>();
+        int tongTon = 0;
+
+        try (PreparedStatement stmt = con.prepareStatement(selectSql)) {
+            stmt.setString(1, maThuoc);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    maLos.add(rs.getString("maLo"));
+                    int conLai = rs.getInt("soLuongConLai");
+                    soLuongs.add(conLai);
+                    tongTon += conLai;
+                }
+            }
+        }
+
+        if (tongTon < soLuongBan) {
+            return false;
+        }
+
+        int canTru = soLuongBan;
+        try (PreparedStatement stmt = con.prepareStatement(updateSql)) {
+            for (int i = 0; i < maLos.size() && canTru > 0; i++) {
+                int hienTai = soLuongs.get(i);
+                int tru = Math.min(hienTai, canTru);
+                int moi = hienTai - tru;
+                stmt.setInt(1, moi);
+                stmt.setString(2, moi == 0 ? "Hết hàng" : "Còn hàng");
+                stmt.setString(3, maLos.get(i));
+                stmt.addBatch();
+                canTru -= tru;
+            }
+            stmt.executeBatch();
+        }
+
+        return true;
     }
 
     private LoThuoc mapLo(ResultSet rs) throws SQLException {

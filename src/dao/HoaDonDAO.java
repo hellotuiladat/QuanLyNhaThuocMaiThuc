@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import ConnectDB.DatabaseConnection;
+import entity.ChiTietHoaDon;
 import entity.HoaDon;
 import entity.KhachHang;
 import entity.KhuyenMai;
@@ -113,35 +114,121 @@ public class HoaDonDAO {
      * Thêm hóa đơn mới
      */
     public boolean themHoaDon(HoaDon hd) throws SQLException {
-        String sql = "INSERT INTO HoaDon (maHD,ngayLap,maThue,maNV,maKH,maKM,maPhieuDat)" +
-                     " VALUES(?,?,?,?,?,?,?)";
         try (Connection con = getSafeConnection()) {
-            PreparedStatement stmt = con.prepareStatement(sql);
+            return themHoaDon(con, hd);
+        }
+    }
+
+    public boolean thanhToanHoaDon(HoaDon hd, ArrayList<ChiTietHoaDon> dsChiTietHoaDon) throws SQLException {
+        return thanhToanHoaDon(hd, dsChiTietHoaDon, null, true);
+    }
+
+    public boolean thanhToanHoaDon(HoaDon hd, ArrayList<ChiTietHoaDon> dsChiTietHoaDon,
+            String maPhieuDatHoanThanh) throws SQLException {
+        return thanhToanHoaDon(hd, dsChiTietHoaDon, maPhieuDatHoanThanh, true);
+    }
+
+    public boolean thanhToanPhieuDat(HoaDon hd, ArrayList<ChiTietHoaDon> dsChiTietHoaDon,
+            String maPhieuDatHoanThanh) throws SQLException {
+        return thanhToanHoaDon(hd, dsChiTietHoaDon, maPhieuDatHoanThanh, false);
+    }
+
+    private boolean thanhToanHoaDon(HoaDon hd, ArrayList<ChiTietHoaDon> dsChiTietHoaDon,
+            String maPhieuDatHoanThanh, boolean truTonKho) throws SQLException {
+        if (hd == null || dsChiTietHoaDon == null || dsChiTietHoaDon.isEmpty()) {
+            throw new SQLException("Hoa don phai co it nhat mot chi tiet");
+        }
+
+        try (Connection con = getSafeConnection()) {
+            boolean oldAutoCommit = con.getAutoCommit();
+            con.setAutoCommit(false);
+            try {
+                if (!themHoaDon(con, hd)) {
+                    con.rollback();
+                    return false;
+                }
+
+                LoThuocDAO loDAO = new LoThuocDAO();
+                for (ChiTietHoaDon cthd : dsChiTietHoaDon) {
+                    cthd.getHoaDon().setMaHD(hd.getMaHD());
+                    if (!themChiTietHoaDon(con, cthd)) {
+                        con.rollback();
+                        return false;
+                    }
+                    if (truTonKho) {
+                        String maThuoc = cthd.getThuoc().getMaThuoc();
+                        if (!loDAO.truTonTheoFEFO(con, maThuoc, cthd.getSoLuong())) {
+                            throw new SQLException("Ton kho lo khong du cho thuoc " + maThuoc);
+                        }
+                    }
+                }
+
+                if (maPhieuDatHoanThanh != null && !maPhieuDatHoanThanh.trim().isEmpty()) {
+                    if (!capNhatTrangThaiPhieuDat(con, maPhieuDatHoanThanh, "Đã hoàn thành")) {
+                        throw new SQLException("Khong the cap nhat trang thai phieu dat " + maPhieuDatHoanThanh);
+                    }
+                }
+
+                con.commit();
+                return true;
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(oldAutoCommit);
+            }
+        }
+    }
+
+    private boolean themHoaDon(Connection con, HoaDon hd) throws SQLException {
+        String sql = "INSERT INTO HoaDon (maHD,ngayLap,maThue,maNV,maKH,maKM,maPhieuDat)"
+                + " VALUES(?,?,?,?,?,?,?)";
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
             stmt.setString(1, hd.getMaHD());
             stmt.setDate(2, new java.sql.Date(hd.getNgayLap().getTime()));
             stmt.setString(3, hd.getThue().getMaThue());
             stmt.setString(4, hd.getNhanVien().getMaNV());
-            
+
             if (hd.getKhachHang() != null && hd.getKhachHang().getMaKH() != null) {
                 stmt.setString(5, hd.getKhachHang().getMaKH());
             } else {
                 stmt.setNull(5, java.sql.Types.VARCHAR);
             }
-            
+
             if (hd.getKhuyenMai() != null && hd.getKhuyenMai().getMaKM() != null) {
                 stmt.setString(6, hd.getKhuyenMai().getMaKM());
             } else {
                 stmt.setNull(6, java.sql.Types.VARCHAR);
             }
-            
+
             if (hd.getPhieuDatThuoc() != null && hd.getPhieuDatThuoc().getMaPhieuDat() != null) {
                 stmt.setString(7, hd.getPhieuDatThuoc().getMaPhieuDat());
             } else {
                 stmt.setNull(7, java.sql.Types.VARCHAR);
             }
-            
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    private boolean themChiTietHoaDon(Connection con, ChiTietHoaDon cthd) throws SQLException {
+        String sql = "INSERT ChiTietHoaDon (maHD,maThuoc,soLuong,donGia) VALUES (?,?,?,?)";
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, cthd.getHoaDon().getMaHD());
+            stmt.setString(2, cthd.getThuoc().getMaThuoc());
+            stmt.setInt(3, cthd.getSoLuong());
+            stmt.setDouble(4, cthd.getDonGia());
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    private boolean capNhatTrangThaiPhieuDat(Connection con, String maPhieuDat, String trangThaiMoi)
+            throws SQLException {
+        String sql = "UPDATE PhieuDatThuoc SET trangThai = ? WHERE maPhieuDat = ?";
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, trangThaiMoi);
+            stmt.setString(2, maPhieuDat);
+            return stmt.executeUpdate() > 0;
         }
     }
     

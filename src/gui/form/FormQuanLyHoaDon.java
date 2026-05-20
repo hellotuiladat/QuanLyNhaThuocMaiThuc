@@ -118,7 +118,7 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
 
         cboxSearch.setToolTipText("");
         cboxSearch.setPreferredSize(new Dimension(150, 40));
-        String[] searchType = {"Tất cả", "Mã hóa đơn", "Mã nhân viên", "Mã khách hàng"};
+        String[] searchType = {"Tất cả", "Mã hóa đơn", "Mã nhân viên", "Tên nhân viên", "Mã khách hàng", "Tên khách hàng"};
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(searchType);
         cboxSearch.setModel(model);
         jPanel3.add(cboxSearch);
@@ -317,47 +317,38 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
 
         for (HoaDon hd : dsHoaDon) {
             boolean match = false;
+            String maHD = safeLower(hd.getMaHD());
+            String maNV = safeLower(hd.getNhanVien() != null ? hd.getNhanVien().getMaNV() : "");
+            String tenNV = layTenNhanVien(hd);
+            String maKH = safeLower(hd.getKhachHang() != null ? hd.getKhachHang().getMaKH() : "");
+            String tenKH = layTenKhachHang(hd);
 
             switch (searchType) {
                 case "Tất cả":
-                    match = hd.getMaHD().toLowerCase().contains(keyword) ||
-                            hd.getNhanVien().getMaNV().toLowerCase().contains(keyword) ||
-                            (hd.getKhachHang() != null && hd.getKhachHang().getMaKH() != null && 
-                             hd.getKhachHang().getMaKH().toLowerCase().contains(keyword));
+                    match = maHD.contains(keyword)
+                            || maNV.contains(keyword)
+                            || safeLower(tenNV).contains(keyword)
+                            || maKH.contains(keyword)
+                            || safeLower(tenKH).contains(keyword);
                     break;
                 case "Mã hóa đơn":
-                    match = hd.getMaHD().toLowerCase().contains(keyword);
+                    match = maHD.contains(keyword);
                     break;
                 case "Mã nhân viên":
-                    match = hd.getNhanVien().getMaNV().toLowerCase().contains(keyword);
+                    match = maNV.contains(keyword);
+                    break;
+                case "Tên nhân viên":
+                    match = safeLower(tenNV).contains(keyword);
                     break;
                 case "Mã khách hàng":
-                    match = hd.getKhachHang() != null && hd.getKhachHang().getMaKH() != null &&
-                            hd.getKhachHang().getMaKH().toLowerCase().contains(keyword);
+                    match = maKH.contains(keyword);
+                    break;
+                case "Tên khách hàng":
+                    match = safeLower(tenKH).contains(keyword);
                     break;
             }
 
             if (match) {
-                // Lấy tên nhân viên
-                String tenNV = "N/A";
-                try {
-                    NhanVien nv = nhanVienDAO.getNhanVienTheoMa(hd.getNhanVien().getMaNV());
-                    if (nv != null) tenNV = nv.getTenNV();
-                } catch (Exception e) {
-                    tenNV = hd.getNhanVien().getMaNV();
-                }
-
-                // Lấy tên khách hàng
-                String tenKH = "Khách lẻ";
-                if (hd.getKhachHang() != null && hd.getKhachHang().getMaKH() != null) {
-                    try {
-                        KhachHang kh = khachHangDAO.getKhachHangTheoMa(hd.getKhachHang().getMaKH());
-                        if (kh != null) tenKH = kh.getHoTen();
-                    } catch (Exception e) {
-                        tenKH = hd.getKhachHang().getMaKH();
-                    }
-                }
-
                 tableModel.addRow(new Object[]{
                     hd.getMaHD(),
                     dateFormat.format(hd.getNgayLap()),
@@ -369,6 +360,34 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
                 });
             }
         }
+    }
+
+    private String layTenNhanVien(HoaDon hd) {
+        if (hd.getNhanVien() == null || hd.getNhanVien().getMaNV() == null) {
+            return "N/A";
+        }
+        try {
+            NhanVien nv = nhanVienDAO.getNhanVienTheoMa(hd.getNhanVien().getMaNV());
+            return nv != null ? nv.getTenNV() : hd.getNhanVien().getMaNV();
+        } catch (Exception e) {
+            return hd.getNhanVien().getMaNV();
+        }
+    }
+
+    private String layTenKhachHang(HoaDon hd) {
+        if (hd.getKhachHang() == null || hd.getKhachHang().getMaKH() == null) {
+            return "Khách lẻ";
+        }
+        try {
+            KhachHang kh = khachHangDAO.getKhachHangTheoMa(hd.getKhachHang().getMaKH());
+            return kh != null ? kh.getHoTen() : hd.getKhachHang().getMaKH();
+        } catch (Exception e) {
+            return hd.getKhachHang().getMaKH();
+        }
+    }
+
+    private String safeLower(String value) {
+        return value == null ? "" : value.toLowerCase();
     }
 
     @Override

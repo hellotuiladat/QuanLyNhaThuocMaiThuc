@@ -24,6 +24,8 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -117,7 +119,25 @@ public class formPhieuDatThuoc extends JPanel {
         txtTimKiem.setToolTipText("Tìm kiếm");
         txtTimKiem.setPreferredSize(new Dimension(240, 40));
         txtTimKiem.setSelectionColor(new Color(230, 245, 245));
+        txtTimKiem.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                timKiem();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                timKiem();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                timKiem();
+            }
+        });
         pnlTimKiem.add(txtTimKiem);
+
+        cboLoaiTimKiem.addActionListener(e -> timKiem());
 
         btnLamMoi = new JButton(new FlatSVGIcon(getClass().getResource("/img/reload.svg")));
         btnLamMoi.setToolTipText("Làm mới");
@@ -126,6 +146,7 @@ public class formPhieuDatThuoc extends JPanel {
         btnLamMoi.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnLamMoi.setPreferredSize(new Dimension(48, 48));
         btnLamMoi.addActionListener(e -> {
+            txtTimKiem.setText("");
             try { loadTableData(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         pnlTimKiem.add(btnLamMoi);
@@ -186,7 +207,12 @@ public class formPhieuDatThuoc extends JPanel {
 
         // 2.2 Table
         String[] tableTitle = {"Mã phiếu đặt", "Ngày đặt", "Mã khách hàng", "Địa chỉ", "Hình thức thanh toán", "Trạng thái"};
-        tableModel = new DefaultTableModel(tableTitle, 0);
+        tableModel = new DefaultTableModel(tableTitle, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tblPhieuDat = new JTable(tableModel);
         tblPhieuDat.getTableHeader().setFont(fontHeaderTable);
         tblPhieuDat.setRowHeight(40);
@@ -263,15 +289,63 @@ public class formPhieuDatThuoc extends JPanel {
         tableModel.setRowCount(0);
         ArrayList<PhieuDatThuoc> dsPDT = pdtDAO.getDsPhieuDatThuoc();
         for (PhieuDatThuoc pdt : dsPDT) {
-            tableModel.addRow(new Object[] {
-                pdt.getMaPhieuDat(), 
-                pdt.getNgayDat(),
-                pdt.getKhachHang().getMaKH(),
-                pdt.getDiaChi(),
-                pdt.getHinhThucThanhToan(), 
-                pdt.getTrangThai()
-            });
+            themDongPhieuDat(pdt);
         }
+    }
+
+    private void timKiem() {
+        String keyword = txtTimKiem.getText().trim().toLowerCase();
+        String loaiTimKiem = cboLoaiTimKiem.getSelectedItem().toString();
+
+        try {
+            tableModel.setRowCount(0);
+            for (PhieuDatThuoc pdt : pdtDAO.getDsPhieuDatThuoc()) {
+                String maPhieuDat = safeLower(pdt.getMaPhieuDat());
+                String trangThai = safeLower(pdt.getTrangThai());
+                boolean match = keyword.isEmpty();
+
+                if (!match) {
+                    switch (loaiTimKiem) {
+                        case "Mã":
+                            match = maPhieuDat.contains(keyword);
+                            break;
+                        case "Trạng thái":
+                            match = trangThai.contains(keyword);
+                            break;
+                        default:
+                            match = maPhieuDat.contains(keyword)
+                                    || safeLower(pdt.getKhachHang() != null ? pdt.getKhachHang().getMaKH() : "").contains(keyword)
+                                    || safeLower(pdt.getDiaChi()).contains(keyword)
+                                    || safeLower(pdt.getHinhThucThanhToan()).contains(keyword)
+                                    || trangThai.contains(keyword);
+                            break;
+                    }
+                }
+
+                if (match) {
+                    themDongPhieuDat(pdt);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi tìm kiếm phiếu đặt: " + ex.getMessage(),
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void themDongPhieuDat(PhieuDatThuoc pdt) {
+        tableModel.addRow(new Object[] {
+            pdt.getMaPhieuDat(),
+            pdt.getNgayDat(),
+            pdt.getKhachHang() != null ? pdt.getKhachHang().getMaKH() : "",
+            pdt.getDiaChi(),
+            pdt.getHinhThucThanhToan(),
+            pdt.getTrangThai()
+        });
+    }
+
+    private String safeLower(String value) {
+        return value == null ? "" : value.toLowerCase();
     }
 
     private void thanhToanPhieuDatThuoc() throws Exception {

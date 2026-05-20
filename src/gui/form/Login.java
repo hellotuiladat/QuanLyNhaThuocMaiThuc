@@ -284,6 +284,7 @@ public class Login extends JFrame implements ActionListener
         // Perform login in background thread
         SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
             private TaiKhoan foundAccount = null;
+            private boolean inactiveAccount = false;
             
             @Override
             protected Boolean doInBackground() throws Exception {
@@ -301,7 +302,12 @@ public class Login extends JFrame implements ActionListener
                 }
                 
                 String validPass = foundAccount.getMatKhau().trim();
-                return validPass.equals(pass);
+                if (!validPass.equals(pass)) {
+                    return false;
+                }
+
+                inactiveAccount = !isActiveAccount(foundAccount);
+                return !inactiveAccount;
             }
             
             @Override
@@ -314,6 +320,10 @@ public class Login extends JFrame implements ActionListener
                     
                     if (foundAccount == null) {
                         showError("Tài khoản không tồn tại!");
+                        txtUsername.requestFocus();
+                        txtUsername.selectAll();
+                    } else if (inactiveAccount) {
+                        showError("Tài khoản này đang ngừng hoạt động, không thể đăng nhập!");
                         txtUsername.requestFocus();
                         txtUsername.selectAll();
                     } else if (!success) {
@@ -346,6 +356,12 @@ public class Login extends JFrame implements ActionListener
         };
         
         worker.execute();
+    }
+
+    private boolean isActiveAccount(TaiKhoan account) {
+        return account != null
+                && account.getTrangThai() != null
+                && "Hoạt động".equalsIgnoreCase(account.getTrangThai().trim());
     }
     
     private void showError(String message) {

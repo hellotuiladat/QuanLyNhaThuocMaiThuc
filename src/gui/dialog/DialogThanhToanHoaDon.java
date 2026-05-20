@@ -496,7 +496,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
         	if (isThanhToan) {
         		KhachHang kh = null;
         		if (tenKhachHang.isEmpty() && soDienThoai.isEmpty()) {
-        			kh = new KhachHang();
+        			kh = null;
         		} else {
         			try {
 						kh = khDAO.getKhachHangTheoSDT(soDienThoai);
@@ -512,26 +512,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
 	                khuyenMaiApDung,
 	                null);
 	            try {
-	            	if (hdDAO.themHoaDon(hd)) {
-	            	    boolean allSuccess = true;
-	            	    for (ChiTietHoaDon cthd : dsChiTietHoaDon) {
-	            	        if (!cthdDAO.themChiTietHoaDon(cthd)) {
-	            	            allSuccess = false;
-	            	            break;
-	            	        } else {
-		        	            // Cập nhật tồn kho
-		        	            String maThuoc = cthd.getThuoc().getMaThuoc();
-		        	            int soLuongBan = cthd.getSoLuong();
-		
-		        	            // Lấy số lượng tồn hiện tại
-		        	            if (!loThuocDAO.truTonTheoFEFO(maThuoc, soLuongBan)) {
-		        	                allSuccess = false;
-		        	                JOptionPane.showMessageDialog(this, "Ton kho lo khong du cho thuoc " + maThuoc);
-		        	                break;
-		        	            }
-	            	        }
-	            	    }
-	            	    if (allSuccess) {
+	            	if (hdDAO.thanhToanHoaDon(hd, dsChiTietHoaDon)) {
 	            	    	
 	            	        JOptionPane.showMessageDialog(this, "✅ Thanh toán thành công");
 	            	        confirmed = true;
@@ -543,16 +524,14 @@ public class DialogThanhToanHoaDon extends JDialog  {
 	            	        	this.dispose();
 	            	        }
 	            	      
-	            	    } else {
-	            	        JOptionPane.showMessageDialog(this, "❌ Lỗi khi thêm chi tiết hóa đơn");
-	            	    }
 	            	} else {
-	            	    JOptionPane.showMessageDialog(this, "❌ Lỗi khi thêm hóa đơn");
+	            	    JOptionPane.showMessageDialog(this, " Lỗi khi thanh toán hóa đơn");
 	            	}
 	
 				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Lỗi thanh toán: " + e1.getMessage(),
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
 				}
         	}
         });
