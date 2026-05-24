@@ -354,13 +354,14 @@ public class formThemPhieuDatThuoc extends JPanel {
         
         cboLoaiTimKiem = new JComboBox<>();
         cboLoaiTimKiem.setPreferredSize(new Dimension(100, 40));
+        cboLoaiTimKiem.addActionListener(evt -> locDanhSachThuoc());
         
         txtTimKiem = new JTextField();
         txtTimKiem.setPreferredSize(new Dimension(200, 40));
         // Tìm kiếm thuốc
         txtTimKiem.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent evt) {
-                txtSearchKeyReleased(evt);
+                locDanhSachThuoc();
             }
         });
 
@@ -971,7 +972,7 @@ public class formThemPhieuDatThuoc extends JPanel {
         }
     }
 
-    private void txtSearchKeyReleased(KeyEvent evt) {
+    private void locDanhSachThuoc() {
         String keyword = txtTimKiem.getText().trim();
         // Table Sorter giúp tìm kiếm dữ liệu ngay trên bảng
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modelDanhSachThuoc);
@@ -987,8 +988,30 @@ public class formThemPhieuDatThuoc extends JPanel {
             }
         } else {
             daCanhBaoKyTuTimKiem = false;
-            sorter.setRowFilter(RowFilter.regexFilter("(?iu)" + Pattern.quote(keyword))); // Không phân biệt chữ hoa hay thường
+            String regex = "(?iu)" + Pattern.quote(keyword);
+            int cotTimKiem = getCotTimKiemDangChon();
+            if (cotTimKiem == -1) {
+                sorter.setRowFilter(RowFilter.regexFilter(regex));
+            } else {
+                sorter.setRowFilter(RowFilter.regexFilter(regex, cotTimKiem));
+            }
         }
+    }
+
+    private int getCotTimKiemDangChon() {
+        Object selected = cboLoaiTimKiem.getSelectedItem();
+        if (selected == null) {
+            return -1;
+        }
+
+        String loaiTimKiem = selected.toString();
+        if ("Mã".equals(loaiTimKiem)) {
+            return 1;
+        }
+        if ("Tên".equals(loaiTimKiem)) {
+            return 2;
+        }
+        return -1;
     }
 
     private boolean coKyTuDacBietTimKiem(String keyword) {

@@ -340,7 +340,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
             }
 
             if (phanTramGiamGia > 0) {
-                giamGia = tongTien * phanTramGiamGia / 100;
+                giamGia = tongTienTruocKhiKhuyenMai * phanTramGiamGia / 100;
                 System.out.println("KM áp dụng: " + khuyenMaiApDung.getTenKM());
                 System.out.println("% giảm: " + phanTramGiamGia + "%");
                 System.out.println("Tiền giảm: " + String.format("%,.0f VNĐ", giamGia));
@@ -385,7 +385,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
                 tienThue = tongTienSauKhiKhuyenMai * phanTramThue / 100;
 
                 System.out.println("✓ Áp dụng thuế: " + tenThue);
-                System.out.println("  Tổng tiền: " + String.format("%,.0f", tongTien));
+                System.out.println("  Tổng tiền sau giảm: " + String.format("%,.0f", tongTienSauKhiKhuyenMai));
                 System.out.println("  Tiền thuế: " + String.format("%,.0f", tienThue));
             } else {
                 System.out.println("⚠ Không có thông tin thuế, mặc định 0%");
@@ -406,7 +406,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
         
      
 
-        double thanhTien = tongTienSauKhiKhuyenMai + tongTienSauKhiKhuyenMai * phanTramThue / 100;
+        double thanhTien = Math.round(tongTienSauKhiKhuyenMai + tienThue);
         
         JLabel lblThanhTienLabel = new JLabel("Thành tiền:");
         lblThanhTienLabel.setFont(new Font("Roboto", Font.BOLD, 16));
@@ -556,7 +556,7 @@ private void taoMaQrCode() {
         
         // Tạo URL cho QR code
         String qrUrl = String.format(
-            "https://img.vietqr.io/image/%s-%s-compact.pnoing?amount=%s&addInfo=%s",
+            "https://img.vietqr.io/image/%s-%s-compact.png?amount=%s&addInfo=%s",
             bank, account, amountStr, URLEncoder.encode(noiDung, "UTF-8")
         );
         

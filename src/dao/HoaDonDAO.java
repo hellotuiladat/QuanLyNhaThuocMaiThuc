@@ -49,7 +49,7 @@ public class HoaDonDAO {
                     String maPDT = rs.getString("maPhieuDat");
                     
                     HoaDon hd = new HoaDon(maHD, ngayLap, 
-                        new Thue(maThue), 
+                        maThue != null ? new Thue(maThue) : null, 
                         new NhanVien(maNhanVien), 
                         maKH != null ? new KhachHang(maKH) : null,
                         maKM != null ? new KhuyenMai(maKM) : null, 
@@ -81,7 +81,7 @@ public class HoaDonDAO {
                     String maPDT = rs.getString("maPhieuDat");
                     
                     return new HoaDon(maHD, ngayLap, 
-                        new Thue(maThue), 
+                        maThue != null ? new Thue(maThue) : null, 
                         new NhanVien(maNhanVien), 
                         maKH != null ? new KhachHang(maKH) : null,
                         maKM != null ? new KhuyenMai(maKM) : null, 
@@ -186,7 +186,11 @@ public class HoaDonDAO {
         try (PreparedStatement stmt = con.prepareStatement(sql)) {
             stmt.setString(1, hd.getMaHD());
             stmt.setDate(2, new java.sql.Date(hd.getNgayLap().getTime()));
-            stmt.setString(3, hd.getThue().getMaThue());
+            if (hd.getThue() != null && hd.getThue().getMaThue() != null) {
+                stmt.setString(3, hd.getThue().getMaThue());
+            } else {
+                stmt.setNull(3, java.sql.Types.VARCHAR);
+            }
             stmt.setString(4, hd.getNhanVien().getMaNV());
 
             if (hd.getKhachHang() != null && hd.getKhachHang().getMaKH() != null) {
@@ -302,7 +306,7 @@ public class HoaDonDAO {
                     String maPDT = rs.getString("maPhieuDat");
                     
                     HoaDon hd = new HoaDon(maHD, ngayLap, 
-                        new Thue(maThue), 
+                        maThue != null ? new Thue(maThue) : null, 
                         new NhanVien(maNhanVien), 
                         maKH != null ? new KhachHang(maKH) : null,
                         maKM != null ? new KhuyenMai(maKM) : null, 

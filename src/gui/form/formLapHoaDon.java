@@ -357,12 +357,13 @@ public class formLapHoaDon extends JPanel {
         
         cboLoaiTimKiem = new JComboBox<>();
         cboLoaiTimKiem.setPreferredSize(new Dimension(100, 40));
+        cboLoaiTimKiem.addActionListener(evt -> locDanhSachThuoc());
         
         txtTimKiem = new JTextField();
         txtTimKiem.setPreferredSize(new Dimension(200, 40));
         txtTimKiem.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent evt) {
-                txtSearchKeyReleased(evt);
+                locDanhSachThuoc();
             }
         });
 
@@ -858,8 +859,9 @@ public class formLapHoaDon extends JPanel {
         }
         double phanTramThue = 0;
         try {
-            for (Thue thue : thueDAO.getDsThue()) {
-                phanTramThue += thue.getPhanTramThue();
+            ArrayList<Thue> dsThue = thueDAO.getDsThue();
+            if (dsThue != null && !dsThue.isEmpty()) {
+                phanTramThue = dsThue.get(0).getPhanTramThue();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -1044,7 +1046,7 @@ public class formLapHoaDon extends JPanel {
         }
     }
 
-    private void txtSearchKeyReleased(KeyEvent evt) {
+    private void locDanhSachThuoc() {
         String keyword = txtTimKiem.getText().trim();
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modelDanhSachThuoc);
         tblDanhSachThuoc.setRowSorter(sorter);
@@ -1059,8 +1061,30 @@ public class formLapHoaDon extends JPanel {
             }
         } else {
             daCanhBaoKyTuTimKiem = false;
-            sorter.setRowFilter(RowFilter.regexFilter("(?iu)" + Pattern.quote(keyword)));
+            String regex = "(?iu)" + Pattern.quote(keyword);
+            int cotTimKiem = getCotTimKiemDangChon();
+            if (cotTimKiem == -1) {
+                sorter.setRowFilter(RowFilter.regexFilter(regex));
+            } else {
+                sorter.setRowFilter(RowFilter.regexFilter(regex, cotTimKiem));
+            }
         }
+    }
+
+    private int getCotTimKiemDangChon() {
+        Object selected = cboLoaiTimKiem.getSelectedItem();
+        if (selected == null) {
+            return -1;
+        }
+
+        String loaiTimKiem = selected.toString();
+        if ("Mã".equals(loaiTimKiem)) {
+            return 1;
+        }
+        if ("Tên".equals(loaiTimKiem)) {
+            return 2;
+        }
+        return -1;
     }
 
     private boolean coKyTuDacBietTimKiem(String keyword) {

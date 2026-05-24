@@ -144,7 +144,11 @@ public class LoThuocDAO {
         }
 
         String selectSql = "SELECT maLo, soLuongConLai FROM LoThuoc "
-                + "WHERE maThuoc = ? AND soLuongConLai > 0 ORDER BY hanSuDung ASC, maLo ASC";
+                + "WHERE maThuoc = ? "
+                + "AND soLuongConLai > 0 "
+                + "AND hanSuDung >= CAST(GETDATE() AS DATE) "
+                + "AND trangThai = N'Còn hàng' "
+                + "ORDER BY hanSuDung ASC, maLo ASC";
         String updateSql = "UPDATE LoThuoc SET soLuongConLai = ?, trangThai = ? WHERE maLo = ?";
 
         ArrayList<String> maLos = new ArrayList<>();
