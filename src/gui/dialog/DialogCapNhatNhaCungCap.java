@@ -94,6 +94,7 @@ public class DialogCapNhatNhaCungCap extends JDialog {
         btnHuy = new JButton("HỦY");
         btnCapNhat.setPreferredSize(new Dimension(140, 40));
         btnCapNhat.setBackground(new Color(0, 0, 205));
+        btnCapNhat.setForeground(Color.WHITE);
         btnHuy.setPreferredSize(new Dimension(140, 40));
         buttonPanel.add(btnCapNhat);
         buttonPanel.add(btnHuy);
