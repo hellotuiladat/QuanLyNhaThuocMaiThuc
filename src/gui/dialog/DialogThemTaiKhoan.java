@@ -275,6 +275,14 @@ public class DialogThemTaiKhoan extends JDialog {
             txtMatKhau.requestFocus();
             return false;
         }
+        if (!TaiKhoan.isValidPasswordFormat(matKhau)) {
+            JOptionPane.showMessageDialog(this,
+                "Mật khẩu phải trên 6 ký tự bao gồm: chữ cái, số, ký tự đặc biệt",
+                "Cảnh báo",
+                JOptionPane.WARNING_MESSAGE);
+            txtMatKhau.requestFocus();
+            return false;
+        }
         return true;
      }
 }

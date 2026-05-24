@@ -18,6 +18,66 @@ import entity.PhieuDatThuoc;
 import entity.Thue;
 
 public class HoaDonDAO {
+    public static class HoaDonHienThi {
+        private final String maHD;
+        private final Date ngayLap;
+        private final String maNV;
+        private final String tenNV;
+        private final String maKH;
+        private final String tenKH;
+        private final String maThue;
+        private final String maKM;
+        private final String maPhieuDat;
+
+        public HoaDonHienThi(String maHD, Date ngayLap, String maNV, String tenNV,
+                String maKH, String tenKH, String maThue, String maKM, String maPhieuDat) {
+            this.maHD = maHD;
+            this.ngayLap = ngayLap;
+            this.maNV = maNV;
+            this.tenNV = tenNV;
+            this.maKH = maKH;
+            this.tenKH = tenKH;
+            this.maThue = maThue;
+            this.maKM = maKM;
+            this.maPhieuDat = maPhieuDat;
+        }
+
+        public String getMaHD() {
+            return maHD;
+        }
+
+        public Date getNgayLap() {
+            return ngayLap;
+        }
+
+        public String getMaNV() {
+            return maNV;
+        }
+
+        public String getTenNV() {
+            return tenNV;
+        }
+
+        public String getMaKH() {
+            return maKH;
+        }
+
+        public String getTenKH() {
+            return tenKH;
+        }
+
+        public String getMaThue() {
+            return maThue;
+        }
+
+        public String getMaKM() {
+            return maKM;
+        }
+
+        public String getMaPhieuDat() {
+            return maPhieuDat;
+        }
+    }
     
     private Connection getSafeConnection() throws SQLException {
         Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -56,6 +116,33 @@ public class HoaDonDAO {
                         maPDT != null ? new PhieuDatThuoc(maPDT) : null);
                     temp.add(hd);
                 }
+            }
+        }
+        return temp;
+    }
+
+    public ArrayList<HoaDonHienThi> getDsHoaDonHienThi() throws SQLException {
+        ArrayList<HoaDonHienThi> temp = new ArrayList<>();
+        String sql = "SELECT hd.maHD, hd.ngayLap, hd.maNV, nv.tenNV, "
+                + "hd.maKH, kh.hoTen AS tenKH, hd.maThue, hd.maKM, hd.maPhieuDat "
+                + "FROM HoaDon hd "
+                + "LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV "
+                + "LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH "
+                + "ORDER BY hd.ngayLap DESC";
+        try (Connection con = getSafeConnection();
+                Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                temp.add(new HoaDonHienThi(
+                        rs.getString("maHD"),
+                        rs.getDate("ngayLap"),
+                        rs.getString("maNV"),
+                        rs.getString("tenNV"),
+                        rs.getString("maKH"),
+                        rs.getString("tenKH"),
+                        rs.getString("maThue"),
+                        rs.getString("maKM"),
+                        rs.getString("maPhieuDat")));
             }
         }
         return temp;

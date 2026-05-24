@@ -283,7 +283,6 @@ public class LichSuDoiTraDAO {
         try (Connection con = getSafeConnection()) {
             PreparedStatement stmt = con.prepareStatement(createTableSQL);
             stmt.executeUpdate();
-            System.out.println("Đã tạo bảng LichSuDoiTra thành công");
         }
     }
     

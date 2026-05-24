@@ -1,19 +1,13 @@
 package gui.dialog;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -29,13 +23,8 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 
-import dao.ThueDAO;
-import dao.ThuocDAO;
-import dao.LoThuocDAO;
-import dao.ChiTietHoaDonDAO;
 import dao.HoaDonDAO;
 import dao.KhachHangDAO;
-import dao.KhuyenMaiDAO;
 import dao.NhanVienDAO;
 import entity.ChiTietHoaDon;
 import entity.HoaDon;
@@ -65,13 +54,8 @@ public class DialogThanhToanHoaDon extends JDialog  {
     private JButton btnXacNhan;
     private JButton btnHuy;
     private boolean confirmed = false;
-    private ThueDAO thueDAO;
     private NhanVienDAO nhanVienDAO;
-	private KhuyenMaiDAO khuyenMaiDAO;
 	private HoaDonDAO hdDAO;
-	private ChiTietHoaDonDAO cthdDAO;
-	private ThuocDAO thuocDAO;
-	private LoThuocDAO loThuocDAO;
 	private KhachHangDAO khDAO;
 	private JPanel mainPanel;
 	private KhuyenMai khuyenMaiApDung;
@@ -82,16 +66,17 @@ public class DialogThanhToanHoaDon extends JDialog  {
      */
     public DialogThanhToanHoaDon(Frame parent, String maHoaDon, String tenKhachHang, 
                                String soDienThoai, ArrayList<ChiTietHoaDon> dsChiTietHoaDon, 
-                               double tongTien, double tienNhanVao, String maNhanVien, String maPhieuDat) {
+                               double tongTienGoc, double giamGia, double tienThue, double thanhTien,
+                               KhuyenMai khuyenMaiApDung, Thue thueApDung,
+                               double tienNhanVao, String maNhanVien, String maPhieuDat) {
         super(parent, "Chi Tiết Hóa Đơn", true);
-        thueDAO = new ThueDAO();
-        thuocDAO = new ThuocDAO();
-        loThuocDAO = new LoThuocDAO();
         nhanVienDAO = new NhanVienDAO();
-        cthdDAO = new ChiTietHoaDonDAO();
         hdDAO = new HoaDonDAO();
         khDAO = new KhachHangDAO();
-        initComponents(maHoaDon, tenKhachHang, soDienThoai, dsChiTietHoaDon, tongTien, tienNhanVao, maNhanVien,maPhieuDat);
+        this.khuyenMaiApDung = khuyenMaiApDung;
+        initComponents(maHoaDon, tenKhachHang, soDienThoai, dsChiTietHoaDon,
+                tongTienGoc, giamGia, tienThue, thanhTien, thueApDung,
+                tienNhanVao, maNhanVien, maPhieuDat);
         setLocationRelativeTo(parent);
         
     }
@@ -100,7 +85,8 @@ public class DialogThanhToanHoaDon extends JDialog  {
      * Khởi tạo các components
      */
     private void initComponents(String maHoaDon, String tenKhachHang, String soDienThoai,
-                               ArrayList<ChiTietHoaDon> dsChiTietHoaDon, double tongTien, 
+                               ArrayList<ChiTietHoaDon> dsChiTietHoaDon, double tongTienGoc,
+                               double giamGia, double tienThue, double thanhTien, Thue thueApDung,
                                double tienNhanVao, String maNhanVien, String maPhieuDat) {
         
         setSize(900, 800);
@@ -277,15 +263,13 @@ public class DialogThanhToanHoaDon extends JDialog  {
         
         // Load data
         int stt = 1;
-        double tongTienTruocKhiKhuyenMai = 0;
         for (ChiTietHoaDon item : dsChiTietHoaDon) {
             tableModel.addRow(new Object[]{
                 stt++,
                 item.getThuoc().getTenThuoc(),
                 item.getSoLuong(),
                 String.format("%,.0f VNĐ", item.getDonGia()),
-                String.format("%,.0f VNĐ", item.getThanhTien()),
-                tongTienTruocKhiKhuyenMai += item.getThanhTien()
+                String.format("%,.0f VNĐ", item.getThanhTien())
             });
         }
         
@@ -314,44 +298,12 @@ public class DialogThanhToanHoaDon extends JDialog  {
         lblTongTienLabel.setFont(paymentFont);
         paymentPanel.add(lblTongTienLabel);
         
-        txtTongTien = new JTextField(String.format("%,.0f VNĐ", tongTienTruocKhiKhuyenMai));
+        txtTongTien = new JTextField(String.format("%,.0f VNĐ", tongTienGoc));
         txtTongTien.setEditable(false);
         txtTongTien.setFont(new Font("Roboto", Font.BOLD, 15));
         paymentPanel.add(txtTongTien);
         
-     // ===== GIẢM GIÁ TỪ KHUYẾN MÃI (LẤY MAX) =====
-        double giamGia = 0;
-        double phanTramGiamGia = 0;
-
-        try {
-            khuyenMaiDAO = new KhuyenMaiDAO();
-            ArrayList<KhuyenMai> dsKhuyenMai = khuyenMaiDAO.getDsKhuyenMai();
-            Date now = new Date();
-
-            for (KhuyenMai km : dsKhuyenMai) {
-                if (km.getNgayBatDau() != null && km.getNgayKetThuc() != null
-                    && isInDateRange(now, km.getNgayBatDau(), km.getNgayKetThuc())) {
-
-                    if (km.getPhanTramGiamGia() > phanTramGiamGia) {
-                        phanTramGiamGia = km.getPhanTramGiamGia();
-                        this.khuyenMaiApDung = km;
-                    }
-                }
-            }
-
-            if (phanTramGiamGia > 0) {
-                giamGia = tongTienTruocKhiKhuyenMai * phanTramGiamGia / 100;
-                System.out.println("KM áp dụng: " + khuyenMaiApDung.getTenKM());
-                System.out.println("% giảm: " + phanTramGiamGia + "%");
-                System.out.println("Tiền giảm: " + String.format("%,.0f VNĐ", giamGia));
-            } else {
-                System.out.println("Không có khuyến mãi hiệu lực");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
+        double phanTramGiamGia = khuyenMaiApDung != null ? khuyenMaiApDung.getPhanTramGiamGia() : 0;
         String labelGiamGia = phanTramGiamGia > 0 ? "Giảm giá (" + " -" + String.format("%.0f%%", phanTramGiamGia) + "):" : "Giảm giá:";
         JLabel lblGiamGiaLabel = new JLabel(labelGiamGia);
         lblGiamGiaLabel.setFont(paymentFont); paymentPanel.add(lblGiamGiaLabel);
@@ -362,37 +314,10 @@ public class DialogThanhToanHoaDon extends JDialog  {
         	txtGiamGia.setFont(new Font("Roboto", Font.BOLD, 14)); 
         }
         paymentPanel.add(txtGiamGia);
-        // Nếu không có khuyến mãi thì sau = trước
-        double tongTienSauKhiKhuyenMai = tongTienTruocKhiKhuyenMai;
-        if (khuyenMaiApDung != null) {
-        	tongTienSauKhiKhuyenMai = tongTienTruocKhiKhuyenMai - tongTienTruocKhiKhuyenMai * khuyenMaiApDung.getPhanTramGiamGia() / 100;
-        }
-        // ===== THUẾ =====
-        AtomicReference<Thue> thueInfo = new AtomicReference<>();
-        double tienThue = 0;
-        double phanTramThue = 0;
+
         String tenThue = "Thuế (0%)";
-        ArrayList<Thue> dsThue = null;
-
-        try {
-            dsThue = thueDAO.getDsThue();
-            if (dsThue != null && !dsThue.isEmpty()) {
-                Thue thue = dsThue.get(0);
-                thueInfo.set(thue);
-
-                phanTramThue = thue.getPhanTramThue();
-                tenThue = thue.getTenThue() + " (" + String.format("%.0f%%", phanTramThue) + ")";
-                tienThue = tongTienSauKhiKhuyenMai * phanTramThue / 100;
-
-                System.out.println("✓ Áp dụng thuế: " + tenThue);
-                System.out.println("  Tổng tiền sau giảm: " + String.format("%,.0f", tongTienSauKhiKhuyenMai));
-                System.out.println("  Tiền thuế: " + String.format("%,.0f", tienThue));
-            } else {
-                System.out.println("⚠ Không có thông tin thuế, mặc định 0%");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("✗ Lỗi khi lấy thông tin thuế: " + e.getMessage());
+        if (thueApDung != null) {
+            tenThue = thueApDung.getTenThue() + " (" + String.format("%.0f%%", thueApDung.getPhanTramThue()) + ")";
         }
         
         JLabel lblThueLabel = new JLabel(tenThue + ":");
@@ -406,14 +331,14 @@ public class DialogThanhToanHoaDon extends JDialog  {
         
      
 
-        double thanhTien = Math.round(tongTienSauKhiKhuyenMai + tienThue);
+        final double thanhTienChot = Math.round(thanhTien);
         
         JLabel lblThanhTienLabel = new JLabel("Thành tiền:");
         lblThanhTienLabel.setFont(new Font("Roboto", Font.BOLD, 16));
         lblThanhTienLabel.setForeground(new Color(255, 51, 0));
         paymentPanel.add(lblThanhTienLabel);
         
-        txtThanhTien = new JTextField(String.format("%,.0f VNĐ", thanhTien));
+        txtThanhTien = new JTextField(String.format("%,.0f VNĐ", thanhTienChot));
         txtThanhTien.setEditable(false);
         txtThanhTien.setFont(new Font("Roboto", Font.BOLD, 16));
         txtThanhTien.setForeground(new Color(255, 51, 0));
@@ -432,7 +357,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
         // Tiền thừa = Tiền nhận vào - Thành tiền
         double tienThua = 0;
         if (tienNhanVao != 0) {
-        	tienThua = tienNhanVao - thanhTien;
+        	tienThua = tienNhanVao - thanhTienChot;
         } 
         JLabel lblTienThuaLabel = new JLabel("Tiền thừa:");
         lblTienThuaLabel.setFont(paymentFont);
@@ -488,7 +413,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
         	} else {
         		isThanhToan = true;
         	}
-            if (isThanhToan && tienNhanVao > 0 && tienNhanVao < thanhTien) {
+            if (isThanhToan && tienNhanVao > 0 && tienNhanVao < thanhTienChot) {
                 JOptionPane.showMessageDialog(this, "Tiền nhận vào chưa đủ để thanh toán hóa đơn.");
                 isThanhToan = false;
                 return;
@@ -506,7 +431,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
 					}
         		}
 	            HoaDon hd = new HoaDon(maHoaDon, new Date(),
-	                thueInfo.get(),
+	                thueApDung,
 	                new NhanVien(maNhanVien),
 	                kh,
 	                khuyenMaiApDung,
@@ -559,8 +484,6 @@ private void taoMaQrCode() {
             "https://img.vietqr.io/image/%s-%s-compact.png?amount=%s&addInfo=%s",
             bank, account, amountStr, URLEncoder.encode(noiDung, "UTF-8")
         );
-        
-        System.out.println("QR URL: " + qrUrl);
         
         // Tạo dialog
         JDialog dlQrCode = new JDialog(this, "Quét mã QR để thanh toán", true);
@@ -641,15 +564,7 @@ private void taoMaQrCode() {
         // Event handlers
         btnDaNhanTien.addActionListener(e -> {
             txtTienNhanVao.setText(txtThanhTien.getText());
-            
-            // Tính tiền thừa
-            String thanhTienStr = txtThanhTien.getText()
-                    .replace(",", "")
-                    .replace("VNĐ", "")
-                    .replace(".", "")
-                    .trim();
-            txtTienThua = new JTextField();
-            txtTienThua.setText("0 VND");
+            txtTienThua.setText("0 VNĐ");
             txtTienThua.setForeground(new Color(0, 153, 0));
             int choice = JOptionPane.showConfirmDialog(this, "Xác nhận đã nhận tiền ?");
             if (choice == JOptionPane.YES_OPTION) {

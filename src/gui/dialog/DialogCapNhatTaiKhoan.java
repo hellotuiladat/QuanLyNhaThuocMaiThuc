@@ -309,7 +309,7 @@ public class DialogCapNhatTaiKhoan extends JDialog {
         // Nếu có nhập mật khẩu mới, phải validate
         if (!matKhau.isEmpty()) {
             // Kiểm tra định dạng mật khẩu
-            if (!matKhau.matches(TaiKhoan.REGEX_MAT_KHAU)) {
+            if (!TaiKhoan.isValidPasswordFormat(matKhau)) {
                 JOptionPane.showMessageDialog(this, 
                     "Mật khẩu phải trên 6 ký tự bao gồm: chữ cái, số, ký tự đặc biệt!", 
                     "Cảnh báo", 

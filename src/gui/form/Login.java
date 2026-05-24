@@ -15,7 +15,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 public class Login extends JFrame implements ActionListener 
 {
@@ -288,15 +287,7 @@ public class Login extends JFrame implements ActionListener
             
             @Override
             protected Boolean doInBackground() throws Exception {
-                ArrayList<TaiKhoan> ds = dsTK.dsTaiKhoan();
-                
-                for (TaiKhoan t : ds) {
-                    if (username.equalsIgnoreCase(t.getTenDangNhap().trim())) {
-                        foundAccount = t;
-                        break;
-                    }
-                }
-                
+                foundAccount = dsTK.timTaiKhoanTheoTen(username);
                 if (foundAccount == null) {
                     return false;
                 }

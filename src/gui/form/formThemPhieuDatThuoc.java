@@ -654,9 +654,6 @@ public class formThemPhieuDatThuoc extends JPanel {
     }
 
     private void loadDataThuoc() throws SQLException {
-        if (modelGioHang != null) {
-            modelGioHang.setRowCount(0);
-        }
         hanSuDungMap.clear();
         
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer() {
@@ -692,6 +689,40 @@ public class formThemPhieuDatThuoc extends JPanel {
                 String.format("%,.0f", thuoc.getGiaBan())
             });
         }
+        apDungSoLuongTrongGioVaoBangThuoc();
+        if (modelGioHang != null) {
+            updateCartTable();
+        }
+    }
+
+    private void apDungSoLuongTrongGioVaoBangThuoc() {
+        if (dsChiTietPhieuDatThuoc == null || dsChiTietPhieuDatThuoc.isEmpty()) {
+            return;
+        }
+
+        for (int i = 0; i < modelDanhSachThuoc.getRowCount(); i++) {
+            String maThuoc = String.valueOf(modelDanhSachThuoc.getValueAt(i, 1));
+            int soLuongTrongGio = getSoLuongTrongGio(maThuoc);
+            if (soLuongTrongGio <= 0) {
+                continue;
+            }
+
+            Object tonHienTaiObj = modelDanhSachThuoc.getValueAt(i, 6);
+            int tonHienTai = (tonHienTaiObj instanceof Integer)
+                    ? (Integer) tonHienTaiObj
+                    : Integer.parseInt(tonHienTaiObj.toString().replace(",", "").replace(".", ""));
+            modelDanhSachThuoc.setValueAt(Math.max(0, tonHienTai - soLuongTrongGio), i, 6);
+        }
+    }
+
+    private int getSoLuongTrongGio(String maThuoc) {
+        int soLuong = 0;
+        for (ChiTietPhieuDatThuoc item : dsChiTietPhieuDatThuoc) {
+            if (item.getThuoc() != null && maThuoc.equals(item.getThuoc().getMaThuoc())) {
+                soLuong += item.getSoLuong();
+            }
+        }
+        return soLuong;
     }
     
     private void tableMouseClicked(MouseEvent evt) {
@@ -782,8 +813,6 @@ public class formThemPhieuDatThuoc extends JPanel {
                 showWarning("Vui lòng chọn thuốc từ bảng!");
                 return;
             }
-            Object val = tblDanhSachThuoc.getValueAt(rowSelected, 6);
-            int soLuongTon = (val instanceof Integer) ? (Integer) val : Integer.parseInt(val.toString().replace(",", "").replace(".", "")); // Handle format if needed
             
             int soLuongDaTrongGio = 0;
             for (ChiTietPhieuDatThuoc item : dsChiTietPhieuDatThuoc) {
@@ -792,12 +821,13 @@ public class formThemPhieuDatThuoc extends JPanel {
                     break;
                 }
             }
-            if (soLuongDaTrongGio + soLuong > soLuongTon + soLuongDaTrongGio) { // Logic check lại chút: soLuongTon trên bảng là đã trừ chưa?
-                // Logic gốc của bạn: check soLuongTon hien tai
-                 if (soLuong > soLuongTon) { // Sửa lại logic: soLuongTon trên bảng là số thực tế
-                     showWarning("Số lượng tồn kho không đủ!\nSố lượng tồn: " + soLuongTon);
-                     return;
-                 }
+            int soLuongTonThucTe = thuoc.getSoLuongTon();
+            if (soLuongDaTrongGio + soLuong > soLuongTonThucTe) {
+                showWarning("Số lượng tồn kho không đủ!"
+                        + "\nTồn kho thực tế: " + soLuongTonThucTe
+                        + "\nĐã có trong giỏ: " + soLuongDaTrongGio
+                        + "\nSố lượng muốn thêm: " + soLuong);
+                return;
             }
             
             boolean found = false;

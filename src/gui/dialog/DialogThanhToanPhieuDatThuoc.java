@@ -486,8 +486,6 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
                 }
 
                 if (hdDAO.thanhToanPhieuDat(hd, dsChiTietHoaDon, maPhieuDatGlobal)) {
-                    System.out.println("✓ Đã cập nhật trạng thái phiếu đặt:  " + maPhieuDatGlobal);
-                        
                         // ✅ FIX:  Gán mã hóa đơn để in
                         lblMaHoaDon = new JLabel(maHD);
                         

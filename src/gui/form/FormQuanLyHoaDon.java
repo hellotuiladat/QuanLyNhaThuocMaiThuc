@@ -32,11 +32,7 @@ import javax.swing.table.DefaultTableModel;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import dao.HoaDonDAO;
-import dao.KhachHangDAO;
-import dao.NhanVienDAO;
-import entity.HoaDon;
-import entity.KhachHang;
-import entity.NhanVien;
+import dao.HoaDonDAO.HoaDonHienThi;
 import entity.TaiKhoan;
 import gui.dialog.DialogChiTietHoaDon;
 
@@ -57,10 +53,8 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
     private JTextField txtSearch;
     private DefaultTableModel tableModel;
     private HoaDonDAO hdDAO;
-    private KhachHangDAO khachHangDAO;
-    private NhanVienDAO nhanVienDAO;
     private TaiKhoan tk;
-    private ArrayList<HoaDon> dsHoaDon;
+    private ArrayList<HoaDonHienThi> dsHoaDon;
     
     Font headerTable = new Font("Roboto", Font.BOLD, 18);
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -68,8 +62,6 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
     public FormQuanLyHoaDon(ManHinhChinh parent,TaiKhoan taiKhoan) {
         this.tk = taiKhoan;
         hdDAO = new HoaDonDAO();
-        khachHangDAO = new KhachHangDAO();
-        nhanVienDAO = new NhanVienDAO();
         taoNoiDung();
         addEvents();
         btnAdd.addActionListener(e -> {
@@ -258,42 +250,10 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
     public void loadTableData() {
         try {
             tableModel.setRowCount(0);
-            dsHoaDon = hdDAO.getDsHoaDon();
+            dsHoaDon = hdDAO.getDsHoaDonHienThi();
             
-            for (HoaDon hd : dsHoaDon) {
-                // Lấy tên nhân viên
-                String tenNV = "N/A";
-                try {
-                    NhanVien nv = nhanVienDAO.getNhanVienTheoMa(hd.getNhanVien().getMaNV());
-                    if (nv != null) {
-                        tenNV = nv.getTenNV();
-                    }
-                } catch (Exception e) {
-                    tenNV = hd.getNhanVien().getMaNV();
-                }
-
-                // Lấy tên khách hàng
-                String tenKH = "Khách lẻ";
-                if (hd.getKhachHang() != null && hd.getKhachHang().getMaKH() != null) {
-                    try {
-                        KhachHang kh = khachHangDAO.getKhachHangTheoMa(hd.getKhachHang().getMaKH());
-                        if (kh != null) {
-                            tenKH = kh.getHoTen();
-                        }
-                    } catch (Exception e) {
-                        tenKH = hd.getKhachHang().getMaKH();
-                    }
-                }
-
-                tableModel.addRow(new Object[]{
-                    hd.getMaHD(),
-                    dateFormat.format(hd.getNgayLap()),
-                    tenNV,
-                    tenKH,
-                    hd.getThue() != null ? hd.getThue().getMaThue() : "N/A",
-                    hd.getKhuyenMai() != null && hd.getKhuyenMai().getMaKM() != null ? hd.getKhuyenMai().getMaKM() : "Không có",
-                    hd.getPhieuDatThuoc() != null && hd.getPhieuDatThuoc().getMaPhieuDat() != null ? hd.getPhieuDatThuoc().getMaPhieuDat() : "Không có"
-                });
+            for (HoaDonHienThi hd : dsHoaDon) {
+                themDongHoaDon(hd);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -302,6 +262,32 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
                 "Lỗi",
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void themDongHoaDon(HoaDonHienThi hd) {
+        tableModel.addRow(new Object[]{
+            hd.getMaHD(),
+            dateFormat.format(hd.getNgayLap()),
+            hienThiNhanVien(hd),
+            hienThiKhachHang(hd),
+            hd.getMaThue() != null ? hd.getMaThue() : "N/A",
+            hd.getMaKM() != null ? hd.getMaKM() : "Không có",
+            hd.getMaPhieuDat() != null ? hd.getMaPhieuDat() : "Không có"
+        });
+    }
+
+    private String hienThiNhanVien(HoaDonHienThi hd) {
+        if (hd.getTenNV() != null && !hd.getTenNV().trim().isEmpty()) {
+            return hd.getTenNV();
+        }
+        return hd.getMaNV() != null ? hd.getMaNV() : "N/A";
+    }
+
+    private String hienThiKhachHang(HoaDonHienThi hd) {
+        if (hd.getTenKH() != null && !hd.getTenKH().trim().isEmpty()) {
+            return hd.getTenKH();
+        }
+        return hd.getMaKH() != null ? hd.getMaKH() : "Khách lẻ";
     }
 
     private void timKiem() {
@@ -315,13 +301,13 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
 
         tableModel.setRowCount(0);
 
-        for (HoaDon hd : dsHoaDon) {
+        for (HoaDonHienThi hd : dsHoaDon) {
             boolean match = false;
             String maHD = safeLower(hd.getMaHD());
-            String maNV = safeLower(hd.getNhanVien() != null ? hd.getNhanVien().getMaNV() : "");
-            String tenNV = layTenNhanVien(hd);
-            String maKH = safeLower(hd.getKhachHang() != null ? hd.getKhachHang().getMaKH() : "");
-            String tenKH = layTenKhachHang(hd);
+            String maNV = safeLower(hd.getMaNV());
+            String tenNV = hienThiNhanVien(hd);
+            String maKH = safeLower(hd.getMaKH());
+            String tenKH = hienThiKhachHang(hd);
 
             switch (searchType) {
                 case "Tất cả":
@@ -349,40 +335,8 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
             }
 
             if (match) {
-                tableModel.addRow(new Object[]{
-                    hd.getMaHD(),
-                    dateFormat.format(hd.getNgayLap()),
-                    tenNV,
-                    tenKH,
-                    hd.getThue() != null ? hd.getThue().getMaThue() : "N/A",
-                    hd.getKhuyenMai() != null && hd.getKhuyenMai().getMaKM() != null ? hd.getKhuyenMai().getMaKM() : "Không có",
-                    hd.getPhieuDatThuoc() != null && hd.getPhieuDatThuoc().getMaPhieuDat() != null ? hd.getPhieuDatThuoc().getMaPhieuDat() : "Không có"
-                });
+                themDongHoaDon(hd);
             }
-        }
-    }
-
-    private String layTenNhanVien(HoaDon hd) {
-        if (hd.getNhanVien() == null || hd.getNhanVien().getMaNV() == null) {
-            return "N/A";
-        }
-        try {
-            NhanVien nv = nhanVienDAO.getNhanVienTheoMa(hd.getNhanVien().getMaNV());
-            return nv != null ? nv.getTenNV() : hd.getNhanVien().getMaNV();
-        } catch (Exception e) {
-            return hd.getNhanVien().getMaNV();
-        }
-    }
-
-    private String layTenKhachHang(HoaDon hd) {
-        if (hd.getKhachHang() == null || hd.getKhachHang().getMaKH() == null) {
-            return "Khách lẻ";
-        }
-        try {
-            KhachHang kh = khachHangDAO.getKhachHangTheoMa(hd.getKhachHang().getMaKH());
-            return kh != null ? kh.getHoTen() : hd.getKhachHang().getMaKH();
-        } catch (Exception e) {
-            return hd.getKhachHang().getMaKH();
         }
     }
 

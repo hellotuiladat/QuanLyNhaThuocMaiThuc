@@ -87,6 +87,11 @@ public class formLapHoaDon extends JPanel {
     // Variables Logic
     private String currentMaThuoc = "";
     private double tongTien = 0;
+    private double tongTienGoc = 0;
+    private double tienGiamGia = 0;
+    private double tienThue = 0;
+    private KhuyenMai khuyenMaiApDung;
+    private Thue thueApDung;
     private final Map<String, Date> hanSuDungMap = new HashMap<>();
     private boolean daCanhBaoKyTuTimKiem = false;
 
@@ -655,9 +660,6 @@ public class formLapHoaDon extends JPanel {
 
 
     private void loadDataThuoc() throws SQLException {
-        if (modelGioHang != null) {
-            modelGioHang.setRowCount(0);
-        }
         hanSuDungMap.clear();
         
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer() {
@@ -693,6 +695,40 @@ public class formLapHoaDon extends JPanel {
                 String.format("%,.0f", thuoc.getGiaBan())
             });
         }
+        apDungSoLuongTrongGioVaoBangThuoc();
+        if (modelGioHang != null) {
+            updateCartTable();
+        }
+    }
+
+    private void apDungSoLuongTrongGioVaoBangThuoc() {
+        if (dsChiTietHoaDon == null || dsChiTietHoaDon.isEmpty()) {
+            return;
+        }
+
+        for (int i = 0; i < modelDanhSachThuoc.getRowCount(); i++) {
+            String maThuoc = String.valueOf(modelDanhSachThuoc.getValueAt(i, 1));
+            int soLuongTrongGio = getSoLuongTrongGio(maThuoc);
+            if (soLuongTrongGio <= 0) {
+                continue;
+            }
+
+            Object tonHienTaiObj = modelDanhSachThuoc.getValueAt(i, 6);
+            int tonHienTai = (tonHienTaiObj instanceof Integer)
+                    ? (Integer) tonHienTaiObj
+                    : Integer.parseInt(tonHienTaiObj.toString().replace(",", "").replace(".", ""));
+            modelDanhSachThuoc.setValueAt(Math.max(0, tonHienTai - soLuongTrongGio), i, 6);
+        }
+    }
+
+    private int getSoLuongTrongGio(String maThuoc) {
+        int soLuong = 0;
+        for (ChiTietHoaDon item : dsChiTietHoaDon) {
+            if (item.getThuoc() != null && maThuoc.equals(item.getThuoc().getMaThuoc())) {
+                soLuong += item.getSoLuong();
+            }
+        }
+        return soLuong;
     }
     
     private void tableMouseClicked(MouseEvent evt) {
@@ -785,8 +821,6 @@ public class formLapHoaDon extends JPanel {
                 showWarning("Vui lòng chọn thuốc từ bảng!");
                 return;
             }
-            Object val = tblDanhSachThuoc.getValueAt(rowSelected, 6);
-            int soLuongTon = (val instanceof Integer) ? (Integer) val : Integer.parseInt(val.toString().replace(",", "").replace(".", "")); // Handle format if needed
             
             int soLuongDaTrongGio = 0;
             for (ChiTietHoaDon item : dsChiTietHoaDon) {
@@ -795,11 +829,13 @@ public class formLapHoaDon extends JPanel {
                     break;
                 }
             }
-            if (soLuongDaTrongGio + soLuong > soLuongTon + soLuongDaTrongGio) { 
-                 if (soLuong > soLuongTon) { 
-                     showWarning("Số lượng tồn kho không đủ!\nSố lượng tồn: " + soLuongTon);
-                     return;
-                 }
+            int soLuongTonThucTe = thuoc.getSoLuongTon();
+            if (soLuongDaTrongGio + soLuong > soLuongTonThucTe) {
+                showWarning("Số lượng tồn kho không đủ!"
+                        + "\nTồn kho thực tế: " + soLuongTonThucTe
+                        + "\nĐã có trong giỏ: " + soLuongDaTrongGio
+                        + "\nSố lượng muốn thêm: " + soLuong);
+                return;
             }
             
             boolean found = false;
@@ -857,19 +893,25 @@ public class formLapHoaDon extends JPanel {
         for (ChiTietHoaDon item : dsChiTietHoaDon) {
             tongTienTruocKhuyenMaiVaThue += item.getThanhTien();
         }
+
+        tongTienGoc = tongTienTruocKhuyenMaiVaThue;
+        thueApDung = null;
+        khuyenMaiApDung = null;
+        tienGiamGia = 0;
+        tienThue = 0;
+
         double phanTramThue = 0;
         try {
             ArrayList<Thue> dsThue = thueDAO.getDsThue();
             if (dsThue != null && !dsThue.isEmpty()) {
-                phanTramThue = dsThue.get(0).getPhanTramThue();
+                thueApDung = dsThue.get(0);
+                phanTramThue = thueApDung.getPhanTramThue();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         
-        double giamGia = 0;
         double phanTramGiamGia = 0;
-        KhuyenMai khuyenMaiApDung = null;
         try {
             khuyenMaiDAO = new KhuyenMaiDAO();
             ArrayList<KhuyenMai> dsKhuyenMai = khuyenMaiDAO.getDsKhuyenMai();
@@ -887,12 +929,7 @@ public class formLapHoaDon extends JPanel {
             }
 
             if (phanTramGiamGia > 0) {
-                giamGia = tongTienTruocKhuyenMaiVaThue * phanTramGiamGia / 100;
-                System.out.println("✔ KM áp dụng: " + khuyenMaiApDung.getTenKM());
-                System.out.println("✔ % giảm: " + phanTramGiamGia + "%");
-                System.out.println("✔ Tiền giảm: " + String.format("%,.0f VNĐ", giamGia));
-            } else {
-                System.out.println("⚠ Không có khuyến mãi hiệu lực");
+                tienGiamGia = tongTienTruocKhuyenMaiVaThue * phanTramGiamGia / 100;
             }
 
         } catch (Exception e) {
@@ -902,10 +939,10 @@ public class formLapHoaDon extends JPanel {
                 ? khuyenMaiApDung.getPhanTramGiamGia()
                 : 0;
 
-        double tienGiam = tongTienTruocKhuyenMaiVaThue * phanTramGiam / 100;
-        double tienSauGiam = tongTienTruocKhuyenMaiVaThue - tienGiam;
+        tienGiamGia = tongTienTruocKhuyenMaiVaThue * phanTramGiam / 100;
+        double tienSauGiam = tongTienTruocKhuyenMaiVaThue - tienGiamGia;
 
-        double tienThue = tienSauGiam * phanTramThue / 100;
+        tienThue = tienSauGiam * phanTramThue / 100;
         double tongThanhToan = tienSauGiam + tienThue;
 
         tongThanhToan = Math.round(tongThanhToan);
@@ -979,7 +1016,10 @@ public class formLapHoaDon extends JPanel {
             Frame frame = (window instanceof Frame) ? (Frame) window : null;
             
             DialogThanhToanHoaDon dialog = new DialogThanhToanHoaDon(
-                frame, maHoaDon, tenKhachHang, sdt, dsChiTietHoaDon, tongTien, tienNhanVao, taiKhoan.getNhanVien().getMaNV(), null
+                frame, maHoaDon, tenKhachHang, sdt, dsChiTietHoaDon,
+                tongTienGoc, tienGiamGia, tienThue, tongTien,
+                khuyenMaiApDung, thueApDung, tienNhanVao,
+                taiKhoan.getNhanVien().getMaNV(), null
             );
             dialog.setVisible(true);
             if (dialog.isConfirmed()) resetForm();
@@ -1032,6 +1072,11 @@ public class formLapHoaDon extends JPanel {
         txtTienKhachDua.setText("");
         txtTienTraLai.setText("");
         tongTien = 0;
+        tongTienGoc = 0;
+        tienGiamGia = 0;
+        tienThue = 0;
+        khuyenMaiApDung = null;
+        thueApDung = null;
         
         try { loadDataThuoc(); } catch (SQLException e) { e.printStackTrace(); }
     }
