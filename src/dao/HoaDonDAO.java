@@ -123,7 +123,7 @@ public class HoaDonDAO {
 
     public ArrayList<HoaDonHienThi> getDsHoaDonHienThi() throws SQLException {
         ArrayList<HoaDonHienThi> temp = new ArrayList<>();
-        String sql = "SELECT hd.maHD, hd.ngayLap, hd.maNV, nv.tenNV, "
+        String sql = "SELECT hd.maHD, hd.ngayLap, hd.maNV, nv.hoTen AS tenNV, "
                 + "hd.maKH, kh.hoTen AS tenKH, hd.maThue, hd.maKM, hd.maPhieuDat "
                 + "FROM HoaDon hd "
                 + "LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV "

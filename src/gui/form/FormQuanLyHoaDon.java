@@ -110,7 +110,7 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
 
         cboxSearch.setToolTipText("");
         cboxSearch.setPreferredSize(new Dimension(150, 40));
-        String[] searchType = {"Tất cả", "Mã hóa đơn", "Mã nhân viên", "Tên nhân viên", "Mã khách hàng", "Tên khách hàng"};
+        String[] searchType = {"Tất cả", "Mã hóa đơn", "Tên nhân viên", "Tên khách hàng"};
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(searchType);
         cboxSearch.setModel(model);
         jPanel3.add(cboxSearch);
@@ -312,22 +312,14 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
             switch (searchType) {
                 case "Tất cả":
                     match = maHD.contains(keyword)
-                            || maNV.contains(keyword)
                             || safeLower(tenNV).contains(keyword)
-                            || maKH.contains(keyword)
                             || safeLower(tenKH).contains(keyword);
                     break;
                 case "Mã hóa đơn":
                     match = maHD.contains(keyword);
                     break;
-                case "Mã nhân viên":
-                    match = maNV.contains(keyword);
-                    break;
                 case "Tên nhân viên":
                     match = safeLower(tenNV).contains(keyword);
-                    break;
-                case "Mã khách hàng":
-                    match = maKH.contains(keyword);
                     break;
                 case "Tên khách hàng":
                     match = safeLower(tenKH).contains(keyword);

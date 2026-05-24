@@ -161,7 +161,6 @@ public class formLapHoaDon extends JPanel {
     private JButton btnTimKiemKH;
     private JButton btnThemNhanhKH;
     private JTextField txtHoTenKH;
-    private JComboBox<String> cboGioiTinh;
     
     private JTextField txtTongTien; 
     private JTextField txtTienKhachDua; 
@@ -556,10 +555,6 @@ public class formLapHoaDon extends JPanel {
         // Dòng Tên KH
         pnlGroupThongTin.add(createInputRowWithLabelSize("Tên khách hàng", txtHoTenKH = new JTextField(), 200));
         
-        cboGioiTinh = new JComboBox<>(new String[]{"Nam", "Nữ"});
-        cboGioiTinh.setPreferredSize(new Dimension(90, 40));
-        pnlGroupThongTin.add(cboGioiTinh);
-
         pnlFormNhapLieuThanhToan.add(pnlGroupThongTin);
         pnlFormNhapLieuThanhToan.add(new JSeparator(SwingConstants.HORIZONTAL));
 
@@ -772,12 +767,10 @@ public class formLapHoaDon extends JPanel {
             if (kh != null) {
                 txtHoTenKH.setText(kh.getHoTen());
                 txtHoTenKH.setEditable(false);
-                cboGioiTinh.setEnabled(false);
             } else {
                 JOptionPane.showMessageDialog(this, "Không tìm thấy khách hàng!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 txtHoTenKH.setText("");
                 txtHoTenKH.setEditable(true);
-                cboGioiTinh.setEnabled(true);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -1065,8 +1058,6 @@ public class formLapHoaDon extends JPanel {
         txtSdtKH.setText("");
         txtHoTenKH.setText("");
         txtHoTenKH.setEditable(true);
-        cboGioiTinh.setSelectedIndex(0);
-        cboGioiTinh.setEnabled(true);
         
         txtTongTien.setText("");
         txtTienKhachDua.setText("");
