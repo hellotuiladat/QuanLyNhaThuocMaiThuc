@@ -122,11 +122,11 @@ public class DialogThanhToanHoaDon extends JDialog  {
         Font valueFont = new Font("Roboto", Font.PLAIN, 14);
         
         // Lấy thông tin nhân viên từ mã nhân viên
-        String tenNhanVien = maNhanVien;
+        String tenNhanVien = "N/A";
         try {
             NhanVien nv = nhanVienDAO.getNhanVienTheoMa(maNhanVien);
-            if (nv != null) {
-                tenNhanVien = nv.getTenNV() + " (" + maNhanVien + ")";
+            if (nv != null && nv.getTenNV() != null && !nv.getTenNV().trim().isEmpty()) {
+                tenNhanVien = dinhDangTenNhanVien(nv.getTenNV());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -142,7 +142,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
         lblMaHDLabel.setFont(labelFont);
         row1.add(lblMaHDLabel);
         
-        lblMaHoaDon = new JLabel(maHoaDon);
+        lblMaHoaDon = new JLabel(maHoaDon == null || maHoaDon.trim().isEmpty() ? "Tự động khi xác nhận" : maHoaDon);
         lblMaHoaDon.setFont(valueFont);
         lblMaHoaDon.setForeground(new Color(0, 0, 205));
         row1.add(lblMaHoaDon);
@@ -169,7 +169,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
         lblNVLabel.setFont(labelFont);
         row2.add(lblNVLabel);
         
-        lblNhanVien = new JLabel(tenNhanVien);
+        lblNhanVien = new JLabel(dinhDangTenNhanVien(tenNhanVien));
         lblNhanVien.setFont(valueFont);
         lblNhanVien.setForeground(new Color(0, 102, 204));
         row2.add(lblNhanVien);
@@ -207,6 +207,9 @@ public class DialogThanhToanHoaDon extends JDialog  {
 	        lblMaPhieuDat = new JLabel(maPhieuDat == null ? "" : maPhieuDat);
 	        lblMaPhieuDat.setFont(valueFont);
 	        row3.add(lblMaPhieuDat);
+        } else {
+            row3.add(new JLabel(""));
+            row3.add(new JLabel(""));
         }
         
         infoPanel.add(row3);
@@ -419,6 +422,22 @@ public class DialogThanhToanHoaDon extends JDialog  {
                 return;
             }
         	if (isThanhToan) {
+                String maHoaDonChot = lblMaHoaDon.getText();
+                if (maHoaDonChot == null || maHoaDonChot.trim().isEmpty()
+                        || "Tự động khi xác nhận".equals(maHoaDonChot)) {
+                    try {
+                        maHoaDonChot = hdDAO.generateMaHD();
+                        lblMaHoaDon.setText(maHoaDonChot);
+                    } catch (SQLException e1) {
+                        e1.printStackTrace();
+                        JOptionPane.showMessageDialog(this, "Lỗi tạo mã hóa đơn: " + e1.getMessage(),
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+                for (ChiTietHoaDon cthd : dsChiTietHoaDon) {
+                    cthd.getHoaDon().setMaHD(maHoaDonChot);
+                }
         		KhachHang kh = null;
         		if (tenKhachHang.isEmpty() && soDienThoai.isEmpty()) {
         			kh = null;
@@ -430,7 +449,7 @@ public class DialogThanhToanHoaDon extends JDialog  {
 						e1.printStackTrace();
 					}
         		}
-	            HoaDon hd = new HoaDon(maHoaDon, new Date(),
+	            HoaDon hd = new HoaDon(maHoaDonChot, new Date(),
 	                thueApDung,
 	                new NhanVien(maNhanVien),
 	                kh,
@@ -631,7 +650,7 @@ private void taoMaQrCode() {
             // Thông tin chung
             document.add(new com.itextpdf.text.Paragraph("Mã hóa đơn: " + lblMaHoaDon.getText(), fontNormal));
             document.add(new com.itextpdf.text.Paragraph("Ngày lập: " + lblNgayLap.getText(), fontNormal));
-            document.add(new com.itextpdf.text.Paragraph("Nhân viên: " + lblNhanVien.getText(), fontNormal));
+            document.add(new com.itextpdf.text.Paragraph("Nhân viên: " + dinhDangTenNhanVien(lblNhanVien.getText()), fontNormal));
             document.add(new com.itextpdf.text.Paragraph("Khách hàng: " + lblKhachHang.getText(), fontNormal));
             document.add(new com.itextpdf.text.Paragraph("Số điện thoại: " + lblSoDienThoai.getText(), fontNormal));
             document.add(new com.itextpdf.text.Paragraph(" "));
@@ -724,6 +743,13 @@ private void taoMaQrCode() {
      */
     public boolean isConfirmed() {
         return confirmed;
+    }
+
+    private String dinhDangTenNhanVien(String tenNhanVien) {
+        if (tenNhanVien == null || tenNhanVien.trim().isEmpty()) {
+            return "N/A";
+        }
+        return tenNhanVien.replaceAll("\\s*\\(NV\\d+\\)\\s*$", "").trim();
     }
 
 }

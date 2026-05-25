@@ -29,6 +29,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
@@ -611,18 +612,26 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 			hienThiForm(new formTimKiemNV());
 		}
 		else if(command.equals("Khuyến mãi")) {
-			hienThiForm(new formKhuyenMai());
+			hienThiForm(new formKhuyenMai(taiKhoan));
 		}
 		else if(command.equals("Thuế")) {
+			if (laNhanVienBanThuoc()) {
+				thongBaoKhongCoQuyen();
+				return;
+			}
 			hienThiForm(new formThue());
 		}
 		else if (command.equals("Quản lý phiếu đặt thuốc") || command.equals("Phiếu Đặt Thuốc")) {
 			hienThiForm(new formPhieuDatThuoc(taiKhoan));
 		}
 		else if (command.equals("Quản lý phiếu nhập thuốc") || command.equals("Phiếu Nhập Thuốc")) {
-			hienThiForm(new FormPhieuNhapThuoc());
+			hienThiForm(new FormPhieuNhapThuoc(taiKhoan));
 		}
 		else if(command.equals("Thống kê")) {
+			if (laNhanVienBanThuoc()) {
+				thongBaoKhongCoQuyen();
+				return;
+			}
 			hienThiForm(new FormThongKeLoiNhuan());
 		}
 		
@@ -641,14 +650,14 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 		
 		// Xử lý cho các chức năng Thuốc
 		else if(command.equals("Quản lý thuốc")) {
-			hienThiForm(new formQuanLyThuoc());
+			hienThiForm(new formQuanLyThuoc(taiKhoan));
 		}
 		else if(command.equals("Tìm kiếm thuốc")) {
 			hienThiForm(new formTimKiemThuoc());
 		}
 		else if(command.equals("Danh Mục Thuốc")) {
 			try {
-				hienThiForm(new formDanhMucThuoc());
+				hienThiForm(new formDanhMucThuoc(taiKhoan));
 			} catch (SQLException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -679,5 +688,16 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 		else if (command.equals("Thoát")) {
 			System.exit(0);
 		}
+	}
+
+	private boolean laNhanVienBanThuoc() {
+		return taiKhoan != null && !"Nhân viên quản lý".equals(taiKhoan.getVaiTro());
+	}
+
+	private void thongBaoKhongCoQuyen() {
+		JOptionPane.showMessageDialog(this,
+				"Nhân viên không được phép truy cập mục này",
+				"Không có quyền truy cập",
+				JOptionPane.WARNING_MESSAGE);
 	}
 }

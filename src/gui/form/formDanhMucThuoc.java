@@ -29,6 +29,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import dao.DanhMucThuocDAO;
 import entity.DanhMucThuoc;
+import entity.TaiKhoan;
 import gui.dialog.DialogCapNhatDanhMucThuoc;
 import gui.dialog.DialogThemDanhMucThuoc;
 
@@ -49,9 +50,15 @@ public class formDanhMucThuoc extends JPanel {
     private JTextField txtSearch;
     private DefaultTableModel tableModel;
     private DanhMucThuocDAO dmtDAO;
+    private boolean choPhepSuaXoa = true;
     
     Font headerTable = new Font("Roboto", Font.BOLD, 18);
     public formDanhMucThuoc() throws SQLException {
+    	this(null);
+    }
+
+    public formDanhMucThuoc(TaiKhoan taiKhoan) throws SQLException {
+    	choPhepSuaXoa = coQuyenQuanLy(taiKhoan);
     	taoNoiDung();
     }
 
@@ -157,7 +164,9 @@ public class formDanhMucThuoc extends JPanel {
         btnUpdate.addActionListener(e -> {
         	capNhatDanhMucThuoc();
         });
-        actionPanel.add(btnUpdate);
+        if (choPhepSuaXoa) {
+            actionPanel.add(btnUpdate);
+        }
 
         headerPanel.add(actionPanel, BorderLayout.WEST);
 
@@ -208,6 +217,10 @@ public class formDanhMucThuoc extends JPanel {
     }
     
     private void capNhatDanhMucThuoc() {
+    	if (!choPhepSuaXoa) {
+    		thongBaoKhongCoQuyen();
+    		return;
+    	}
     	int selectedRow = table.getSelectedRow();
     	if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn danh mục thuốc cần cập nhật!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
@@ -241,4 +254,15 @@ public class formDanhMucThuoc extends JPanel {
 		loadDataTable();
 		
 	}
+
+    private boolean coQuyenQuanLy(TaiKhoan taiKhoan) {
+        return taiKhoan == null || "Nhân viên quản lý".equals(taiKhoan.getVaiTro());
+    }
+
+    private void thongBaoKhongCoQuyen() {
+        JOptionPane.showMessageDialog(this,
+                "Nhân viên không được phép thực hiện chức năng này",
+                "Không có quyền",
+                JOptionPane.WARNING_MESSAGE);
+    }
 }

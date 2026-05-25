@@ -285,7 +285,10 @@ public class DialogChiTietPhieuDatThuoc extends JDialog {
             // Hiển thị thông tin phiếu đặt thuốc
             lblMaPhieuDat.setText(phieuDatThuoc.getMaPhieuDat());
             lblNgayDat.setText(dateFormat.format(phieuDatThuoc.getNgayDat()));
-            lblNhanVien.setText("N/A");  // PhieuDatThuoc không lưu thông tin nhân viên
+            String tenNhanVien = pdtDAO.getTenNhanVienThanhToanTheoPhieuDat(maPhieuDat);
+            lblNhanVien.setText(tenNhanVien != null && !tenNhanVien.trim().isEmpty()
+                    ? tenNhanVien.trim()
+                    : "N/A");
             
             // Lấy thông tin khách hàng
             if (phieuDatThuoc.getKhachHang() != null && phieuDatThuoc.getKhachHang().getMaKH() != null) {

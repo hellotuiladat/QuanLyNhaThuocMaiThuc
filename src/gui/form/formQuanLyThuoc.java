@@ -35,6 +35,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import dao.DanhMucThuocDAO;
 import dao.ThuocDAO;
+import entity.TaiKhoan;
 import entity.Thuoc;
 import gui.dialog.DialogThemThuoc;
 import gui.dialog.DialogThongTinChiTietThuoc;
@@ -62,9 +63,15 @@ public class formQuanLyThuoc extends JPanel {
     private DanhMucThuocDAO dmtDAO;
     private ArrayList<Thuoc> dsThuoc;
     private final Map<String, Date> hanSuDungTheoMaThuoc = new HashMap<>();
+    private boolean choPhepSuaXoa = true;
     Font headerTable = new Font("Roboto", Font.BOLD, 18);
     
     public formQuanLyThuoc() {
+        this(null);
+    }
+
+    public formQuanLyThuoc(TaiKhoan taiKhoan) {
+        choPhepSuaXoa = coQuyenQuanLy(taiKhoan);
         taoNoiDung();
         addEvents();
     }
@@ -164,7 +171,9 @@ public class formQuanLyThuoc extends JPanel {
         btnUpdate.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnUpdate.setPreferredSize(new Dimension(90, 90));
         btnUpdate.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        actionPanel.add(btnUpdate);
+        if (choPhepSuaXoa) {
+            actionPanel.add(btnUpdate);
+        }
 
         btnDelete.setFont(new Font("Roboto", Font.BOLD, 14));
         btnDelete.setIcon(new FlatSVGIcon(getClass().getResource("/img/delete.svg")));
@@ -177,11 +186,13 @@ public class formQuanLyThuoc extends JPanel {
         btnDelete.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnDelete.setPreferredSize(new Dimension(90, 90));
         btnDelete.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        actionPanel.add(btnDelete);
+        if (choPhepSuaXoa) {
+            actionPanel.add(btnDelete);
+        }
 
         btnInfo.setFont(new Font("Roboto", Font.BOLD, 14));
         btnInfo.setIcon(new FlatSVGIcon(getClass().getResource("/img/info.svg")));
-        btnInfo.setText("INFO");
+        btnInfo.setText("CHI TIẾT");
         btnInfo.setBorder(null);
         btnInfo.setBorderPainted(false);
         btnInfo.setContentAreaFilled(false);
@@ -339,6 +350,10 @@ public class formQuanLyThuoc extends JPanel {
     }
     
     private void suaThuoc() {
+        if (!choPhepSuaXoa) {
+            thongBaoKhongCoQuyen();
+            return;
+        }
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, 
@@ -373,6 +388,10 @@ public class formQuanLyThuoc extends JPanel {
     }
     
     private void xoaThuoc() {
+        if (!choPhepSuaXoa) {
+            thongBaoKhongCoQuyen();
+            return;
+        }
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, 
@@ -511,5 +530,16 @@ private void xemThongTin() {
 
     private String safeLower(String value) {
         return value == null ? "" : value.toLowerCase();
+    }
+
+    private boolean coQuyenQuanLy(TaiKhoan taiKhoan) {
+        return taiKhoan == null || "Nhân viên quản lý".equals(taiKhoan.getVaiTro());
+    }
+
+    private void thongBaoKhongCoQuyen() {
+        JOptionPane.showMessageDialog(this,
+                "Nhân viên không được phép thực hiện chức năng này",
+                "Không có quyền",
+                JOptionPane.WARNING_MESSAGE);
     }
 }

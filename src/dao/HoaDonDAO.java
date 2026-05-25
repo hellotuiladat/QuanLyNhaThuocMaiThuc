@@ -95,7 +95,7 @@ public class HoaDonDAO {
      */
     public ArrayList<HoaDon> getDsHoaDon() throws SQLException {
         ArrayList<HoaDon> temp = new ArrayList<HoaDon>();
-        String sql = "SELECT * FROM HoaDon ORDER BY ngayLap DESC";
+        String sql = "SELECT * FROM HoaDon ORDER BY CAST(SUBSTRING(maHD, 3, 5) AS INT) DESC";
         try (Connection con = getSafeConnection()) {
             Statement stmt = con.createStatement();
             try (ResultSet rs = stmt.executeQuery(sql)) {
@@ -128,7 +128,7 @@ public class HoaDonDAO {
                 + "FROM HoaDon hd "
                 + "LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV "
                 + "LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH "
-                + "ORDER BY hd.ngayLap DESC";
+                + "ORDER BY CAST(SUBSTRING(hd.maHD, 3, 5) AS INT) DESC";
         try (Connection con = getSafeConnection();
                 Statement stmt = con.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
@@ -361,7 +361,7 @@ public class HoaDonDAO {
             sql.append(" AND ngayLap <= ?");
         }
         
-        sql.append(" ORDER BY ngayLap DESC");
+        sql.append(" ORDER BY CAST(SUBSTRING(maHD, 3, 5) AS INT) DESC");
         
         try (Connection con = getSafeConnection()) {
             PreparedStatement stmt = con.prepareStatement(sql.toString());

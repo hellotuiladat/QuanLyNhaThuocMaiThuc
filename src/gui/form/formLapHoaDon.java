@@ -266,7 +266,7 @@ public class formLapHoaDon extends JPanel {
         pnlHeaderThongTinThuoc.setLayout(new BorderLayout());
 
         lblTieuDeThongTinThuoc = new JLabel("Thông tin thuốc");
-        lblTieuDeThongTinThuoc.setFont(new Font("Roboto Medium", Font.PLAIN, 14));
+        lblTieuDeThongTinThuoc.setFont(new Font("Roboto Medium", Font.BOLD, 16));
         lblTieuDeThongTinThuoc.setForeground(Color.WHITE);
         lblTieuDeThongTinThuoc.setHorizontalAlignment(SwingConstants.CENTER);
         pnlHeaderThongTinThuoc.add(lblTieuDeThongTinThuoc, BorderLayout.CENTER);
@@ -292,6 +292,7 @@ public class formLapHoaDon extends JPanel {
         // Chi tiết thông tin (Mã, Tên, Thành phần, Đơn giá)
         pnlChiTietThuoc = new JPanel();
         pnlChiTietThuoc.setBackground(Color.WHITE);
+        pnlChiTietThuoc.setBorder(new javax.swing.border.EmptyBorder(0, 16, 0, 16));
         
         // Setup các panel con cho từng dòng
         JPanel pnlDongMa = createInputRow("Mã thuốc:", txtMaThuoc = new JTextField());
@@ -301,25 +302,29 @@ public class formLapHoaDon extends JPanel {
         txtTenThuoc.setEditable(false); txtTenThuoc.setPreferredSize(new Dimension(300, 40));
         
      // block pnlDongThanhPhan:
-        JPanel pnlDongThanhPhan = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        JPanel pnlDongThanhPhan = new JPanel(new BorderLayout(14, 0));
         pnlDongThanhPhan.setBackground(Color.WHITE);
+        pnlDongThanhPhan.setMaximumSize(new Dimension(500, 40));
+        pnlDongThanhPhan.setPreferredSize(new Dimension(500, 40));
+        pnlDongThanhPhan.setAlignmentX(LEFT_ALIGNMENT);
         JLabel lblThanhPhan = new JLabel("Thành phần:");
-        lblThanhPhan.setFont(new Font("Roboto", Font.PLAIN, 14));
-        lblThanhPhan.setPreferredSize(new Dimension(90, 40));          
+        lblThanhPhan.setFont(new Font("Roboto", Font.BOLD, 16));
+        lblThanhPhan.setPreferredSize(new Dimension(110, 40));          
         lblThanhPhan.setVerticalAlignment(SwingConstants.CENTER);      
         txaThanhPhan = new JTextArea();
         txaThanhPhan.setEditable(false);
+        txaThanhPhan.setFont(new Font("Roboto", Font.PLAIN, 16));
         txaThanhPhan.setLineWrap(true);
         txaThanhPhan.setWrapStyleWord(true);                            
         JScrollPane scrThanhPhan = new JScrollPane(txaThanhPhan);
         scrThanhPhan.setPreferredSize(new Dimension(300, 40));          
         scrThanhPhan.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER); // thêm dòng này
-        pnlDongThanhPhan.add(lblThanhPhan);
-        pnlDongThanhPhan.add(scrThanhPhan);
+        pnlDongThanhPhan.add(lblThanhPhan, BorderLayout.WEST);
+        pnlDongThanhPhan.add(scrThanhPhan, BorderLayout.CENTER);
 
         JPanel pnlDongGia = createInputRow("Đơn giá:", txtDonGia = new JTextField());
         txtDonGia.setEditable(false); 
-        txtDonGia.setFont(new Font("Roboto Mono Medium", Font.PLAIN, 14));
+        txtDonGia.setFont(new Font("Roboto Mono Medium", Font.PLAIN, 16));
         txtDonGia.setPreferredSize(new Dimension(120, 40));
 
         // Gom các dòng vào panel chi tiết
@@ -468,7 +473,7 @@ public class formLapHoaDon extends JPanel {
         pnlHeaderGioHang.setPreferredSize(new Dimension(500, 30));
         
         lblTieuDeGioHang = new JLabel("Giỏ hàng");
-        lblTieuDeGioHang.setFont(new Font("Roboto Medium", Font.PLAIN, 14));
+        lblTieuDeGioHang.setFont(new Font("Roboto Medium", Font.BOLD, 16));
         lblTieuDeGioHang.setForeground(Color.WHITE);
         lblTieuDeGioHang.setHorizontalAlignment(SwingConstants.CENTER);
         pnlHeaderGioHang.add(lblTieuDeGioHang, BorderLayout.CENTER);
@@ -481,9 +486,19 @@ public class formLapHoaDon extends JPanel {
                 return false;
             }
         };
-        tblGioHang = new JTable(modelGioHang);
-        tblGioHang.getTableHeader().setFont(new Font("Arial", Font.BOLD, 16));
-        tblGioHang.setFont(new Font("Arial", Font.PLAIN, 14));
+        tblGioHang = new JTable(modelGioHang) {
+            @Override
+            public String getToolTipText(MouseEvent e) {
+                int row = rowAtPoint(e.getPoint());
+                int col = columnAtPoint(e.getPoint());
+                if (row >= 0 && col == 1) {
+                    Object value = getValueAt(row, col);
+                    return value == null ? null : value.toString();
+                }
+                return super.getToolTipText(e);
+            }
+        };
+        cauHinhBangGioHang();
         scrGioHang = new JScrollPane(tblGioHang);
         pnlGioHang.add(scrGioHang, BorderLayout.CENTER);
 
@@ -505,26 +520,30 @@ public class formLapHoaDon extends JPanel {
         pnlThongTinThanhToan = new JPanel(new BorderLayout());
         pnlThongTinThanhToan.setBackground(Color.WHITE);
         pnlThongTinThanhToan.setBorder(new LineBorder(new Color(238, 238, 238), 2, true));
-        pnlThongTinThanhToan.setPreferredSize(new Dimension(500, 400));
+        pnlThongTinThanhToan.setPreferredSize(new Dimension(500, 340));
 
         pnlHeaderThanhToan = new JPanel(new BorderLayout());
         pnlHeaderThanhToan.setBackground(new Color(0, 0, 205));
         pnlHeaderThanhToan.setPreferredSize(new Dimension(500, 30));
         
         lblTieuDeHoaDon = new JLabel("Hóa đơn");
-        lblTieuDeHoaDon.setFont(new Font("Roboto Medium", Font.PLAIN, 14));
+        lblTieuDeHoaDon.setFont(new Font("Roboto Medium", Font.BOLD, 16));
         lblTieuDeHoaDon.setForeground(Color.WHITE);
         lblTieuDeHoaDon.setHorizontalAlignment(SwingConstants.CENTER);
         pnlHeaderThanhToan.add(lblTieuDeHoaDon, BorderLayout.CENTER);
         pnlThongTinThanhToan.add(pnlHeaderThanhToan, BorderLayout.NORTH);
 
-        pnlFormNhapLieuThanhToan = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 8));
+        pnlFormNhapLieuThanhToan = new JPanel();
+        pnlFormNhapLieuThanhToan.setLayout(new BoxLayout(pnlFormNhapLieuThanhToan, BoxLayout.Y_AXIS));
         pnlFormNhapLieuThanhToan.setBackground(Color.WHITE);
+        pnlFormNhapLieuThanhToan.setBorder(new javax.swing.border.EmptyBorder(12, 18, 4, 18));
 
         // Group: Thông tin chung
-        JPanel pnlGroupThongTin = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel pnlGroupThongTin = new JPanel();
+        pnlGroupThongTin.setLayout(new BoxLayout(pnlGroupThongTin, BoxLayout.Y_AXIS));
         pnlGroupThongTin.setBackground(Color.WHITE);
-        pnlGroupThongTin.setPreferredSize(new Dimension(440, 140));
+        pnlGroupThongTin.setMaximumSize(new Dimension(440, 90));
+        pnlGroupThongTin.setAlignmentX(LEFT_ALIGNMENT);
 
         // Mã hóa đơn vẫn được tạo tự động nhưng không hiển thị trên giao diện
         txtMaHoaDon = new JTextField();
@@ -533,11 +552,14 @@ public class formLapHoaDon extends JPanel {
         // Dòng SĐT + Button
         JPanel pnlDongSDT = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         pnlDongSDT.setBackground(Color.WHITE);
+        pnlDongSDT.setMaximumSize(new Dimension(410, 44));
+        pnlDongSDT.setPreferredSize(new Dimension(410, 44));
+        pnlDongSDT.setAlignmentX(LEFT_ALIGNMENT);
         JLabel lblSdt = new JLabel("Số điện thoại:");
         lblSdt.setFont(new Font("Roboto", Font.PLAIN, 14));
         lblSdt.setPreferredSize(new Dimension(120, 40));
         txtSdtKH = new JTextField();
-        txtSdtKH.setPreferredSize(new Dimension(200, 40));
+        txtSdtKH.setPreferredSize(new Dimension(175, 40));
         
         btnTimKiemKH = new JButton(new FlatSVGIcon(getClass().getResource("/img/search.svg")));
         btnTimKiemKH.setPreferredSize(new Dimension(40, 40));
@@ -551,17 +573,20 @@ public class formLapHoaDon extends JPanel {
         
         pnlDongSDT.add(lblSdt); pnlDongSDT.add(txtSdtKH); pnlDongSDT.add(btnTimKiemKH); pnlDongSDT.add(btnThemNhanhKH);
         pnlGroupThongTin.add(pnlDongSDT);
+        pnlGroupThongTin.add(Box.createVerticalStrut(6));
 
         // Dòng Tên KH
         pnlGroupThongTin.add(createInputRowWithLabelSize("Tên khách hàng", txtHoTenKH = new JTextField(), 200));
         
         pnlFormNhapLieuThanhToan.add(pnlGroupThongTin);
-        pnlFormNhapLieuThanhToan.add(new JSeparator(SwingConstants.HORIZONTAL));
+        pnlFormNhapLieuThanhToan.add(Box.createVerticalStrut(10));
 
         // Group: Tiền
-        JPanel pnlGroupTien = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel pnlGroupTien = new JPanel();
+        pnlGroupTien.setLayout(new BoxLayout(pnlGroupTien, BoxLayout.Y_AXIS));
         pnlGroupTien.setBackground(Color.WHITE);
-        pnlGroupTien.setPreferredSize(new Dimension(440, 150));
+        pnlGroupTien.setMaximumSize(new Dimension(440, 135));
+        pnlGroupTien.setAlignmentX(LEFT_ALIGNMENT);
 
         // Tổng tiền
         JPanel pnlDongTong = createInputRowWithLabelSize("Tổng hóa đơn:", txtTongTien = new JTextField(), 200);
@@ -570,6 +595,7 @@ public class formLapHoaDon extends JPanel {
         txtTongTien.setEditable(false); txtTongTien.setForeground(new Color(255, 51, 0));
         txtTongTien.setFont(new Font("Roboto Mono Medium", Font.PLAIN, 14));
         pnlGroupTien.add(pnlDongTong);
+        pnlGroupTien.add(Box.createVerticalStrut(6));
 
         // Tiền khách đưa
         JPanel pnlDongKhachDua = createInputRowWithLabelSize("Tiền nhận vào:", txtTienKhachDua = new JTextField(), 200);
@@ -592,6 +618,7 @@ public class formLapHoaDon extends JPanel {
             }
         });
         pnlGroupTien.add(pnlDongKhachDua);
+        pnlGroupTien.add(Box.createVerticalStrut(6));
 
         // Tiền thừa
         JPanel pnlDongTienThua = createInputRowWithLabelSize("Tiền thừa:", txtTienTraLai = new JTextField(), 200);
@@ -604,7 +631,9 @@ public class formLapHoaDon extends JPanel {
 
         // Button Action
         pnlNutBamThanhToan = new JPanel();
+        pnlNutBamThanhToan.setLayout(new FlowLayout(FlowLayout.CENTER, 8, 6));
         pnlNutBamThanhToan.setBackground(Color.WHITE);
+        pnlNutBamThanhToan.setPreferredSize(new Dimension(500, 58));
 
         btnHuyHoaDon = new JButton("HỦY BỎ");
         btnHuyHoaDon.setBackground(new Color(255, 102, 102));
@@ -630,20 +659,42 @@ public class formLapHoaDon extends JPanel {
     
 
     private JPanel createInputRow(String labelText, JTextField textField) {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        JPanel p = new JPanel(new BorderLayout(14, 0));
         p.setBackground(Color.WHITE);
+        p.setMaximumSize(new Dimension(500, 40));
+        p.setPreferredSize(new Dimension(500, 40));
+        p.setAlignmentX(LEFT_ALIGNMENT);
         JLabel lbl = new JLabel(labelText);
-        lbl.setFont(new Font("Roboto", Font.PLAIN, 14));
-        lbl.setPreferredSize(new Dimension(90, 40));
+        lbl.setFont(new Font("Roboto", Font.BOLD, 16));
+        lbl.setPreferredSize(new Dimension(110, 40));
         lbl.setVerticalAlignment(SwingConstants.CENTER); // thêm dòng này
-        p.add(lbl);
-        p.add(textField);
+        textField.setFont(new Font("Roboto", Font.PLAIN, 16));
+        p.add(lbl, BorderLayout.WEST);
+        p.add(textField, BorderLayout.CENTER);
         return p;
+    }
+
+    private void cauHinhBangGioHang() {
+        tblGioHang.getTableHeader().setFont(new Font("Arial", Font.BOLD, 16));
+        tblGioHang.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
+        rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
+
+        tblGioHang.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        tblGioHang.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+        tblGioHang.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        tblGioHang.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
     }
     
     private JPanel createInputRowWithLabelSize(String labelText, JTextField textField, int textWidth) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         p.setBackground(Color.WHITE);
+        p.setMaximumSize(new Dimension(440, 44));
+        p.setPreferredSize(new Dimension(440, 44));
+        p.setAlignmentX(LEFT_ALIGNMENT);
         JLabel lbl = new JLabel(labelText);
         lbl.setFont(new Font("Roboto", Font.PLAIN, 14));
         lbl.setPreferredSize(new Dimension(120, 40));
@@ -995,11 +1046,15 @@ public class formLapHoaDon extends JPanel {
                     return;
                 }
             }
-            // Tạo mã hóa đơn tự động tại thời điểm thanh toán
-            generateMaHoaDon();
             String tenKhachHang = txtHoTenKH.getText().trim();
-            if (tenKhachHang.isBlank()) tenKhachHang = "Khách lẻ";
-            String maHoaDon = txtMaHoaDon.getText();
+            if (tenKhachHang.isBlank()) {
+                tenKhachHang = "Khách lẻ";
+            } else if (!laTenKhachHangHopLe(tenKhachHang)) {
+                showWarning("Tên khách hàng chỉ được chứa chữ cái và khoảng trắng.");
+                txtHoTenKH.requestFocus();
+                return;
+            }
+            String maHoaDon = "";
             
             for (ChiTietHoaDon cthd : dsChiTietHoaDon) {
                 cthd.getHoaDon().setMaHD(maHoaDon);
@@ -1041,6 +1096,10 @@ public class formLapHoaDon extends JPanel {
     private void btnHuyActionPerformed(ActionEvent evt) {
         int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn hủy hóa đơn này?", "Xác nhận hủy", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) resetForm();
+    }
+
+    private boolean laTenKhachHangHopLe(String tenKhachHang) {
+        return tenKhachHang != null && tenKhachHang.trim().matches("[\\p{L}\\s]+");
     }
 
     public void resetForm() {
@@ -1220,7 +1279,8 @@ public class formLapHoaDon extends JPanel {
     private void btnAddCustomerActionPerformed(ActionEvent evt) throws SQLException {
         ArrayList<KhachHang> dsKH = khachHangDAO.getDSKhachHang();
         int oldSize = dsKH.size();
-        new DialogThemKhachHang(null, new FormQuanLyKhachHang()).setVisible(true);
+        String soDienThoai = txtSdtKH.getText().trim();
+        new DialogThemKhachHang(null, new FormQuanLyKhachHang(), soDienThoai).setVisible(true);
         ArrayList<KhachHang> newDsKH = khachHangDAO.getDSKhachHang();
         if (oldSize != newDsKH.size()) {
             KhachHang khNew = newDsKH.get(newDsKH.size() - 1);

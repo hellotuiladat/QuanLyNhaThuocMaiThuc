@@ -289,9 +289,9 @@ public class DialogChiTietHoaDon extends JDialog {
             // Lấy thông tin nhân viên
             NhanVien nv = nhanVienDAO.getNhanVienTheoMa(hoaDon.getNhanVien().getMaNV());
             if (nv != null) {
-                lblNhanVien.setText(nv.getTenNV());
+                lblNhanVien.setText(dinhDangTenNhanVien(nv.getTenNV()));
             } else {
-                lblNhanVien.setText(hoaDon.getNhanVien().getMaNV());
+                lblNhanVien.setText("N/A");
             }
             
             // Lấy thông tin khách hàng
@@ -383,6 +383,13 @@ public class DialogChiTietHoaDon extends JDialog {
                 "Lỗi",
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private String dinhDangTenNhanVien(String tenNhanVien) {
+        if (tenNhanVien == null || tenNhanVien.trim().isEmpty()) {
+            return "N/A";
+        }
+        return tenNhanVien.replaceAll("\\s*\\(NV\\d+\\)\\s*$", "").trim();
     }
 
 }

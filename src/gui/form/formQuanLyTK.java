@@ -188,7 +188,7 @@ public class formQuanLyTK extends JPanel implements ActionListener {
 
         btnInfo.setFont(new Font("Roboto", Font.BOLD, 14));
         btnInfo.setIcon(new FlatSVGIcon(getClass().getResource("/img/info.svg")));
-        btnInfo.setText("INFO");
+        btnInfo.setText("CHI TIẾT");
         btnInfo.setBorder(null);
         btnInfo.setBorderPainted(false);
         btnInfo.setContentAreaFilled(false);

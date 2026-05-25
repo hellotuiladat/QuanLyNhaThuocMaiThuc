@@ -82,6 +82,24 @@ public class PhieuDatThuocDAO {
         return null;
     }
 
+    public String getTenNhanVienThanhToanTheoPhieuDat(String maPhieuDat) throws SQLException {
+        String sql = "SELECT TOP 1 nv.hoTen "
+                + "FROM HoaDon hd "
+                + "LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV "
+                + "WHERE hd.maPhieuDat = ? "
+                + "ORDER BY hd.ngayLap DESC, CAST(SUBSTRING(hd.maHD, 3, 5) AS INT) DESC";
+        try (Connection con = getSafeConnection();
+                PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, maPhieuDat);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("hoTen");
+                }
+            }
+        }
+        return null;
+    }
+
     public boolean capNhatTrangThaiPhieuDatThuoc(String maPhieuDat, String trangThaiMoi) throws SQLException {
         String sql = "UPDATE PhieuDatThuoc SET trangThai = ? WHERE maPhieuDat = ?";
         try (Connection con = getSafeConnection()) {

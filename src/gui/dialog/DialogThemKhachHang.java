@@ -19,13 +19,20 @@ public class DialogThemKhachHang extends JDialog {
     
     private KhachHangDAO khDAO;
     private FormQuanLyKhachHang parentForm;
+    private String soDienThoaiMacDinh;
     
     public DialogThemKhachHang(Frame parent, FormQuanLyKhachHang form) {
+        this(parent, form, "");
+    }
+
+    public DialogThemKhachHang(Frame parent, FormQuanLyKhachHang form, String soDienThoaiMacDinh) {
         super(parent, "Thêm khách hàng mới", true);
         this.parentForm = form;
         this.khDAO = new KhachHangDAO();
+        this.soDienThoaiMacDinh = soDienThoaiMacDinh == null ? "" : soDienThoaiMacDinh.trim();
         
         initComponents();
+        ganSoDienThoaiMacDinh();
         setLocationRelativeTo(parent);
     }
     
@@ -164,6 +171,13 @@ public class DialogThemKhachHang extends JDialog {
         
         add(buttonPanel, BorderLayout.SOUTH);
     }
+
+    private void ganSoDienThoaiMacDinh() {
+        if (!soDienThoaiMacDinh.isEmpty()) {
+            txtSoDienThoai.setText(soDienThoaiMacDinh);
+            txtHoTen.requestFocusInWindow();
+        }
+    }
     
     private void xuLyThemKhachHang() {
         if (!validateInput()) {
@@ -224,6 +238,15 @@ public class DialogThemKhachHang extends JDialog {
             txtHoTen.requestFocus();
             return false;
         }
+
+        if (!laTenKhachHangHopLe(txtHoTen.getText().trim())) {
+            JOptionPane.showMessageDialog(this,
+                "Họ và tên chỉ được chứa chữ cái và khoảng trắng.",
+                "Cảnh báo",
+                JOptionPane.WARNING_MESSAGE);
+            txtHoTen.requestFocus();
+            return false;
+        }
         
         // Số điện thoại
         String sdt = txtSoDienThoai.getText().trim();
@@ -266,5 +289,9 @@ public class DialogThemKhachHang extends JDialog {
         }
         
         return true;
+    }
+
+    private boolean laTenKhachHangHopLe(String tenKhachHang) {
+        return tenKhachHang != null && tenKhachHang.trim().matches("[\\p{L}\\s]+");
     }
 }

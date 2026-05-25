@@ -643,6 +643,11 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
             com.itextpdf.text.Font fontBold = new com.itextpdf.text.Font(bf, 12, com.itextpdf.text.Font.BOLD);
 
             // --- 4. VẼ TIÊU ĐỀ VÀ THÔNG TIN CHUNG ---
+            com.itextpdf.text.Font fontStoreName = new com.itextpdf.text.Font(bf, 20, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Paragraph storeName = new com.itextpdf.text.Paragraph("NHÀ THUỐC MAI THỨC", fontStoreName);
+            storeName.setAlignment(Element.ALIGN_CENTER);
+            document.add(storeName);
+
             com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("HÓA ĐƠN THANH TOÁN", fontTitle);
             title.setAlignment(Element.ALIGN_CENTER); // Căn giữa tiêu đề
             document.add(title);
