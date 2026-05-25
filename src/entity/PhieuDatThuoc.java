@@ -11,6 +11,7 @@ public class PhieuDatThuoc implements Serializable {
     private String maPhieuDat;
     private Date ngayDat;
     private KhachHang khachHang;
+    private NhanVien nhanVien;
     private String diaChi;
     private String hinhThucThanhToan;
     private String trangThai;
@@ -23,9 +24,15 @@ public class PhieuDatThuoc implements Serializable {
     
     public PhieuDatThuoc(String maPhieuDat, Date ngayDat, KhachHang khachHang, 
                          String diaChi, String hinhThucThanhToan, String trangThai) {
+        this(maPhieuDat, ngayDat, khachHang, null, diaChi, hinhThucThanhToan, trangThai);
+    }
+
+    public PhieuDatThuoc(String maPhieuDat, Date ngayDat, KhachHang khachHang, NhanVien nhanVien,
+                         String diaChi, String hinhThucThanhToan, String trangThai) {
         setMaPhieuDat(maPhieuDat);
         setNgayDat(ngayDat);
         setKhachHang(khachHang);
+        setNhanVien(nhanVien);
         setDiaChi(diaChi);
         setHinhThucThanhToan(hinhThucThanhToan);
         setTrangThai(trangThai);
@@ -52,6 +59,10 @@ public class PhieuDatThuoc implements Serializable {
     
     public void setKhachHang(KhachHang khachHang) {
         this.khachHang = khachHang;
+    }
+
+    public void setNhanVien(NhanVien nhanVien) {
+        this.nhanVien = nhanVien;
     }
     
     public void setDiaChi(String diaChi) {
@@ -89,6 +100,10 @@ public class PhieuDatThuoc implements Serializable {
     
     public KhachHang getKhachHang() {
         return khachHang;
+    }
+
+    public NhanVien getNhanVien() {
+        return nhanVien;
     }
     
     public String getDiaChi() {

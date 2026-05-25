@@ -1133,7 +1133,12 @@ public class formLapHoaDon extends JPanel {
 
     private void btnReloadActionPerformed(ActionEvent evt) {
         try {
+            txtTimKiem.setText("");
+            cboLoaiTimKiem.setSelectedIndex(0);
+            daCanhBaoKyTuTimKiem = false;
+            tblDanhSachThuoc.setRowSorter(null);
             loadDataThuoc();
+            tblDanhSachThuoc.setRowSorter(null);
             showInfo("Đã làm mới danh sách thuốc!");
         } catch (SQLException e) {
             e.printStackTrace();

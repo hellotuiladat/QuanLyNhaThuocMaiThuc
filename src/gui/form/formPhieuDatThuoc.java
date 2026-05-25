@@ -53,6 +53,7 @@ public class formPhieuDatThuoc extends JPanel {
     private JPanel pnlTimKiemWrapper;
     private JPanel pnlTimKiem;
     private JComboBox<String> cboLoaiTimKiem;
+    private JComboBox<String> cboTrangThai;
     private JTextField txtTimKiem;
     private JButton btnLamMoi;
     
@@ -137,7 +138,13 @@ public class formPhieuDatThuoc extends JPanel {
         });
         pnlTimKiem.add(txtTimKiem);
 
-        cboLoaiTimKiem.addActionListener(e -> timKiem());
+        cboTrangThai = new JComboBox<>(new String[]{"Tất cả", "Đã hoàn thành", "Chưa hoàn thành"});
+        cboTrangThai.setPreferredSize(new Dimension(240, 40));
+        cboTrangThai.setVisible(false);
+        cboTrangThai.addActionListener(e -> timKiem());
+        pnlTimKiem.add(cboTrangThai);
+
+        cboLoaiTimKiem.addActionListener(e -> capNhatKieuTimKiem());
 
         btnLamMoi = new JButton(new FlatSVGIcon(getClass().getResource("/img/reload.svg")));
         btnLamMoi.setToolTipText("Làm mới");
@@ -147,6 +154,7 @@ public class formPhieuDatThuoc extends JPanel {
         btnLamMoi.setPreferredSize(new Dimension(48, 48));
         btnLamMoi.addActionListener(e -> {
             txtTimKiem.setText("");
+            cboTrangThai.setSelectedIndex(0);
             try { loadTableData(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         pnlTimKiem.add(btnLamMoi);
@@ -293,9 +301,28 @@ public class formPhieuDatThuoc extends JPanel {
         }
     }
 
+    private void capNhatKieuTimKiem() {
+        boolean timTheoTrangThai = "Trạng thái".equals(cboLoaiTimKiem.getSelectedItem().toString());
+        txtTimKiem.setVisible(!timTheoTrangThai);
+        cboTrangThai.setVisible(timTheoTrangThai);
+        if (timTheoTrangThai) {
+            txtTimKiem.setText("");
+        } else {
+            cboTrangThai.setSelectedIndex(0);
+        }
+        pnlTimKiem.revalidate();
+        pnlTimKiem.repaint();
+        timKiem();
+    }
+
     private void timKiem() {
-        String keyword = txtTimKiem.getText().trim().toLowerCase();
         String loaiTimKiem = cboLoaiTimKiem.getSelectedItem().toString();
+        String keyword = "Trạng thái".equals(loaiTimKiem)
+                ? cboTrangThai.getSelectedItem().toString().trim().toLowerCase()
+                : txtTimKiem.getText().trim().toLowerCase();
+        if ("Tất cả".equalsIgnoreCase(keyword)) {
+            keyword = "";
+        }
 
         try {
             tableModel.setRowCount(0);

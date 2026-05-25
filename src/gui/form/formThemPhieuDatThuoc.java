@@ -67,6 +67,7 @@ import entity.ChiTietPhieuDatThuoc;
 import entity.HoaDon;
 import entity.KhachHang;
 import entity.KhuyenMai;
+import entity.NhanVien;
 import entity.PhieuDatThuoc;
 import entity.TaiKhoan;
 import entity.Thue;
@@ -95,6 +96,7 @@ public class formThemPhieuDatThuoc extends JPanel {
     private double tongTien = 0;
     private final Map<String, Date> hanSuDungMap = new HashMap<>();
     private boolean daCanhBaoKyTuTimKiem = false;
+    private TaiKhoan taiKhoan;
 
     private JPanel pnlChinh;
     private JPanel pnlTopWrapper; // Chứa Khuyến mãi + Thông tin thuốc
@@ -171,6 +173,7 @@ public class formThemPhieuDatThuoc extends JPanel {
 	private JComboBox<String> cboHinhThucThanhToan;
 
     public formThemPhieuDatThuoc(TaiKhoan tk) throws SQLException {
+        this.taiKhoan = tk;
         // Khởi tạo List và DAO
         dsChiTietPhieuDatThuoc = new ArrayList<>();
         thuocDAO = new ThuocDAO();
@@ -1009,7 +1012,10 @@ public class formThemPhieuDatThuoc extends JPanel {
         	}
         	String hinhThucThanhToan = cboHinhThucThanhToan.getSelectedItem().toString();
         	String trangThai = "Chưa hoàn thành";
-        	PhieuDatThuoc pdt = new PhieuDatThuoc(maPhieuDat, ngayDat, khachHang, diaChi, hinhThucThanhToan, trangThai);
+            NhanVien nhanVien = taiKhoan != null && taiKhoan.getNhanVien() != null
+                    ? new NhanVien(taiKhoan.getNhanVien().getMaNV())
+                    : null;
+        	PhieuDatThuoc pdt = new PhieuDatThuoc(maPhieuDat, ngayDat, khachHang, nhanVien, diaChi, hinhThucThanhToan, trangThai);
     		for (ChiTietPhieuDatThuoc ctpdt : dsChiTietPhieuDatThuoc) {
     			ctpdt.getPhieuDatThuoc().setMaPhieuDat(maPhieuDat);
     		}
@@ -1055,7 +1061,12 @@ public class formThemPhieuDatThuoc extends JPanel {
 
     private void btnReloadActionPerformed(ActionEvent evt) {
         try {
+            txtTimKiem.setText("");
+            cboLoaiTimKiem.setSelectedIndex(0);
+            daCanhBaoKyTuTimKiem = false;
+            tblDanhSachThuoc.setRowSorter(null);
             loadDataThuoc();
+            tblDanhSachThuoc.setRowSorter(null);
             showInfo("Đã làm mới danh sách thuốc!");
         } catch (SQLException e) {
             e.printStackTrace();

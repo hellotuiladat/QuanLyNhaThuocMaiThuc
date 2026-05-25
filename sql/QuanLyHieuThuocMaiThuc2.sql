@@ -141,10 +141,12 @@ CREATE TABLE PhieuDatThuoc (
     maPhieuDat NVARCHAR(20) PRIMARY KEY,
     ngayDat DATE NOT NULL,
     maKH NVARCHAR(20) NOT NULL,
+    maNV NVARCHAR(20),
     diaChi NVARCHAR(200) NOT NULL,
     hinhThucThanhToan NVARCHAR(50) CHECK (hinhThucThanhToan IN (N'Thanh toán online', N'Tại chỗ')),
     trangThai NVARCHAR(20) CHECK (trangThai IN (N'Đã hoàn thành', N'Chưa hoàn thành')),
-    FOREIGN KEY (maKH) REFERENCES KhachHang(maKH)
+    FOREIGN KEY (maKH) REFERENCES KhachHang(maKH),
+    FOREIGN KEY (maNV) REFERENCES NhanVien(maNV)
 );
 
 CREATE TABLE ChiTietPhieuDatThuoc (
