@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -64,6 +63,10 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
     private KhuyenMai khuyenMaiApDung;
     private NhanVien nv;
     private String maPhieuDatGlobal; 
+    private KhachHang khachHangThanhToan;
+    private Thue thueApDung;
+    private ArrayList<ChiTietPhieuDatThuoc> dsPhieuDatThuocThanhToan;
+    private Runnable onThanhToanThanhCong;
     
     public DialogThanhToanPhieuDatThuoc(Frame frame, String maPhieuDat, Date ngayDat, String maKH,
             ArrayList<ChiTietPhieuDatThuoc> dsPhieuDatThuoc, double tongTien, NhanVien nv) throws SQLException {
@@ -80,7 +83,12 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         
         this.nv = resolveNhanVien(nv);
         this.maPhieuDatGlobal = maPhieuDat;
+        this.dsPhieuDatThuocThanhToan = dsPhieuDatThuoc;
         initComponents(maPhieuDat, ngayDat, maKH, dsPhieuDatThuoc, tongTien);
+    }
+
+    public void setOnThanhToanThanhCong(Runnable onThanhToanThanhCong) {
+        this.onThanhToanThanhCong = onThanhToanThanhCong;
     }
 
     private NhanVien resolveNhanVien(NhanVien nhanVien) {
@@ -170,8 +178,8 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         lblKHLabel.setFont(labelFont);
         row2.add(lblKHLabel);
         
-        KhachHang kh = khDAO.getKhachHangTheoMa(maKH);
-        lblKhachHang = new JLabel(kh.getHoTen());
+        khachHangThanhToan = khDAO.getKhachHangTheoMa(maKH);
+        lblKhachHang = new JLabel(khachHangThanhToan.getHoTen());
         lblKhachHang.setFont(valueFont);
         row2.add(lblKhachHang);
         
@@ -179,7 +187,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         lblSDTLabel.setFont(labelFont);
         row2.add(lblSDTLabel);
 
-        lblSoDienThoai = new JLabel(kh. getSoDienThoai());
+        lblSoDienThoai = new JLabel(khachHangThanhToan. getSoDienThoai());
         lblSoDienThoai.setFont(valueFont);
         row2.add(lblSoDienThoai);
 
@@ -344,7 +352,6 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         }
         
         // ===== THUẾ =====
-        AtomicReference<Thue> thueInfo = new AtomicReference<>();
         double tienThue = 0;
         double phanTramThue = 0;
         String tenThue = "Thuế (0%)";
@@ -353,7 +360,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
             ArrayList<Thue> dsThue = thueDAO.getDsThue();
             if (dsThue != null && ! dsThue.isEmpty()) {
                 Thue thue = dsThue.get(0);
-                thueInfo.set(thue);
+                thueApDung = thue;
 
                 phanTramThue = thue.getPhanTramThue();
                 tenThue = thue.getTenThue() + " (" + String.format("%.0f%%", phanTramThue) + ")";
@@ -475,7 +482,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
             }
             
             Date ngayThanhToan = new Date();
-            HoaDon hd = new HoaDon(maHD, ngayThanhToan, thueInfo.get(), nv, kh,
+            HoaDon hd = new HoaDon(maHD, ngayThanhToan, thueApDung, nv, khachHangThanhToan,
                     khuyenMaiApDung, new PhieuDatThuoc(maPhieuDatGlobal));
             
             try {
@@ -491,6 +498,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
                         
                         JOptionPane.showMessageDialog(this, "Thanh toán phiếu đặt thành công!");
                         confirmed = true;
+                        thongBaoThanhToanThanhCong();
                         
                         int choice = JOptionPane.showConfirmDialog(this, "Bạn có muốn in hoá đơn không?");
                         if (choice == JOptionPane.YES_OPTION) {
@@ -514,6 +522,59 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         buttonPanel.add(btnXacNhan);
 
         add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    private void hoanTatThanhToanPhieuDat() {
+        if (confirmed) {
+            return;
+        }
+
+        String maHD = null;
+        try {
+            maHD = hdDAO.generateMaHD();
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi tạo mã hóa đơn: " + e1.getMessage());
+            return;
+        }
+
+        Date ngayThanhToan = new Date();
+        HoaDon hd = new HoaDon(maHD, ngayThanhToan, thueApDung, nv, khachHangThanhToan,
+                khuyenMaiApDung, new PhieuDatThuoc(maPhieuDatGlobal));
+
+        try {
+            ArrayList<ChiTietHoaDon> dsChiTietHoaDon = new ArrayList<>();
+            for (ChiTietPhieuDatThuoc ctpdt : dsPhieuDatThuocThanhToan) {
+                dsChiTietHoaDon.add(new ChiTietHoaDon(new HoaDon(maHD), ctpdt.getThuoc(),
+                        ctpdt.getSoLuong(), ctpdt.getDonGia()));
+            }
+
+            if (hdDAO.thanhToanPhieuDat(hd, dsChiTietHoaDon, maPhieuDatGlobal)) {
+                lblMaHoaDon = new JLabel(maHD);
+
+                JOptionPane.showMessageDialog(this, "Thanh toán phiếu đặt thành công!");
+                confirmed = true;
+                thongBaoThanhToanThanhCong();
+
+                int choice = JOptionPane.showConfirmDialog(this, "Bạn có muốn in hoá đơn không?");
+                if (choice == JOptionPane.YES_OPTION) {
+                    inHoaDon();
+                } else {
+                    this.dispose();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Lỗi khi thanh toán phiếu đặt");
+            }
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + e1.getMessage());
+        }
+    }
+
+    private void thongBaoThanhToanThanhCong() {
+        if (onThanhToanThanhCong != null) {
+            onThanhToanThanhCong.run();
+        }
     }
 
     private void taoMaQrCode() {
@@ -595,6 +656,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
                 if (choice == JOptionPane.YES_OPTION) {
                     isThanhToan = true;
                     dlQrCode.dispose();
+                    hoanTatThanhToanPhieuDat();
                 }
             });
 

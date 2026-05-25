@@ -182,6 +182,7 @@ public class formLapHoaDon extends JPanel {
         khuyenMaiDAO = new KhuyenMaiDAO();
         
         initComponents();
+        generateMaHoaDon();
         configureProductLayout();
     }
 
@@ -1053,7 +1054,11 @@ public class formLapHoaDon extends JPanel {
                 txtHoTenKH.requestFocus();
                 return;
             }
-            String maHoaDon = "";
+            String maHoaDon = txtMaHoaDon.getText().trim();
+            if (maHoaDon.isEmpty()) {
+                generateMaHoaDon();
+                maHoaDon = txtMaHoaDon.getText().trim();
+            }
             
             for (ChiTietHoaDon cthd : dsChiTietHoaDon) {
                 cthd.getHoaDon().setMaHD(maHoaDon);
@@ -1126,6 +1131,7 @@ public class formLapHoaDon extends JPanel {
         tienThue = 0;
         khuyenMaiApDung = null;
         thueApDung = null;
+        generateMaHoaDon();
         
         try { loadDataThuoc(); } catch (SQLException e) { e.printStackTrace(); }
     }

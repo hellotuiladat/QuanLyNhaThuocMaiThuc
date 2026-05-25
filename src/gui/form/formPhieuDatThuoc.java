@@ -399,6 +399,13 @@ public class formPhieuDatThuoc extends JPanel {
         DialogThanhToanPhieuDatThuoc dialog = new DialogThanhToanPhieuDatThuoc(
             frame, maPhieuDat, pdt.getNgayDat(), pdt.getKhachHang().getMaKH(), dsPhieuDatThuoc, tongTien, taiKhoan.getNhanVien()
         );
+        dialog.setOnThanhToanThanhCong(() -> {
+            try {
+                loadTableData();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
         dialog.setVisible(true);
         if (dialog.isConfirmed()) {
             loadTableData();
