@@ -22,8 +22,7 @@ GO
 CREATE TABLE NhaCungCap (
     maNCC NVARCHAR(20) PRIMARY KEY,
     tenNCC NVARCHAR(100) NOT NULL,
-    soDienThoai NVARCHAR(15),
-    congNo DECIMAL(18,2) DEFAULT 0 CHECK (congNo >= 0)
+    soDienThoai NVARCHAR(15)
 );
 
 CREATE TABLE NhanVien (
@@ -42,7 +41,8 @@ CREATE TABLE KhachHang (
     maKH NVARCHAR(20) PRIMARY KEY,
     hoTen NVARCHAR(100) NOT NULL,
     soDienThoai NVARCHAR(15),
-    email NVARCHAR(100)
+    email NVARCHAR(100),
+    daXoa BIT DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE Thue (
@@ -62,6 +62,7 @@ CREATE TABLE KhuyenMai (
     ngayBatDau DATE NOT NULL,
     ngayKetThuc DATE NOT NULL,
     phanTramGiamGia DECIMAL(5,2) CHECK (phanTramGiamGia > 0 AND phanTramGiamGia <= 100),
+    lapHangNam BIT DEFAULT 1 NOT NULL,
     CONSTRAINT CK_KhuyenMai_NgayKetThuc CHECK (ngayKetThuc >= ngayBatDau)
 );
 
@@ -206,12 +207,12 @@ GO
 -- =============================================
 
 -- NhaCungCap (NCC00001, NCC00002, ...)
-INSERT INTO NhaCungCap (maNCC, tenNCC, soDienThoai, congNo) VALUES
-(N'NCC00001', N'Công ty Dược Hòa Bình', '0912345678', 1000000),
-(N'NCC00002', N'Công ty Dược Bình Minh', '0987654321', 500000),
-(N'NCC00003', N'Công ty Dược An Khang', '0909999999', 0),
-(N'NCC00004', N'Công ty Dược Phẩm Việt', '0918888888', 250000),
-(N'NCC00005', N'Công ty TNHH Dược Quốc Tế', '0927777777', 0);
+INSERT INTO NhaCungCap (maNCC, tenNCC, soDienThoai) VALUES
+(N'NCC00001', N'Công ty Dược Hòa Bình', '0912345678'),
+(N'NCC00002', N'Công ty Dược Bình Minh', '0987654321'),
+(N'NCC00003', N'Công ty Dược An Khang', '0909999999'),
+(N'NCC00004', N'Công ty Dược Phẩm Việt', '0918888888'),
+(N'NCC00005', N'Công ty TNHH Dược Quốc Tế', '0927777777');
 
 -- NhanVien (NV00001, NV00002, ...) - CHỈ CÓ 2 CHỨC VỤ
 INSERT INTO NhanVien (maNV, hoTen, chucVu, soDienThoai, ngaySinh, gioiTinh, diaChi, email, daXoa) VALUES
@@ -251,11 +252,11 @@ INSERT INTO DanhMucThuoc (maDanhMuc, tenDanhMuc) VALUES
 (N'DM00009', N'Sát khuẩn - Khử trùng');
 
 -- KhuyenMai (KM00001, KM00002, ...)
-INSERT INTO KhuyenMai (maKM, tenKM, ngayBatDau, ngayKetThuc, phanTramGiamGia) VALUES
-(N'KM00001', N'Khuyến mãi Tết Nguyên Đán', '2026-01-01', '2026-01-31', 10.00),
-(N'KM00002', N'Khuyến mãi mùa hè', '2026-06-01', '2026-06-30', 5.00),
-(N'KM00003', N'Khuyến mãi 30/4 - 1/5', '2026-04-28', '2026-05-03', 15.00),
-(N'KM00004', N'Khuyến mãi Black Friday', '2026-11-25', '2026-11-30', 20.00);
+INSERT INTO KhuyenMai (maKM, tenKM, ngayBatDau, ngayKetThuc, phanTramGiamGia, lapHangNam) VALUES
+(N'KM00001', N'Khuyến mãi Tết Nguyên Đán', '2026-01-01', '2026-01-31', 10.00, 1),
+(N'KM00002', N'Khuyến mãi mùa hè', '2026-04-30', '2026-06-30', 5.00, 1),
+(N'KM00003', N'Khuyến mãi 30/4 - 1/5', '2026-04-28', '2026-05-03', 15.00, 1),
+(N'KM00004', N'Khuyến mãi Black Friday', '2026-11-25', '2026-11-30', 20.00, 1);
 
 -- Thuoc (TH00001, TH00002, ...)
 INSERT INTO Thuoc (maThuoc, tenThuoc, donViTinh, giaBan, moTa, maDanhMuc, hinhAnh, thanhPhan, xuatXu) VALUES
@@ -758,7 +759,6 @@ PRINT N' Hình thức thanh toán: Thanh toán online | Tại chỗ';
 PRINT N' Trạng thái phiếu đặt: Đã hoàn thành | Chưa hoàn thành';
 PRINT N' Phần trăm thuế: >= 0';
 PRINT N' Phần trăm giảm giá: 0 < % <= 100';
-PRINT N' Công nợ: >= 0';
 PRINT N' Giá bán, đơn giá, số lượng: >= 0';
 
 GO

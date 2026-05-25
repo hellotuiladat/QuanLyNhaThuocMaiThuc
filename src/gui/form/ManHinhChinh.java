@@ -155,7 +155,7 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 			String[] chucNangNhanVien = {"Quản lý nhân viên","Tìm kiếm nhân viên", "Khuyến mãi", "Thuế", "Thống kê"};
 			themMenuItem(dropMenuNhanVien, chucNangNhanVien, this);
 		} else {
-			String[] chucNangNhanVien = {"Khuyến mãi", "Thuế", "Thống kê"};
+			String[] chucNangNhanVien = {"Khuyến mãi", "Thuế"};
 			themMenuItem(dropMenuNhanVien, chucNangNhanVien, this);
 		}
 		
@@ -615,11 +615,7 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 			hienThiForm(new formKhuyenMai(taiKhoan));
 		}
 		else if(command.equals("Thuế")) {
-			if (laNhanVienBanThuoc()) {
-				thongBaoKhongCoQuyen();
-				return;
-			}
-			hienThiForm(new formThue());
+			hienThiForm(new formThue(taiKhoan));
 		}
 		else if (command.equals("Quản lý phiếu đặt thuốc") || command.equals("Phiếu Đặt Thuốc")) {
 			hienThiForm(new formPhieuDatThuoc(taiKhoan));
@@ -637,7 +633,7 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 		
 		// Xử lý cho các chức năng Khách Hàng
 		else if(command.equals("Quản lý khách hàng")) {
-			hienThiForm(new FormQuanLyKhachHang());
+			hienThiForm(new FormQuanLyKhachHang(taiKhoan));
 		}
 		else if(command.equals("Tìm kiếm khách hàng")) {
 			hienThiForm(new formTimKiemKH());

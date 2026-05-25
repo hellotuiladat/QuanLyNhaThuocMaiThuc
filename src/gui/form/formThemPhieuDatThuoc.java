@@ -1128,7 +1128,7 @@ public class formThemPhieuDatThuoc extends JPanel {
             int count = 0;
             for (KhuyenMai km : dsKhuyenMai) {
                 if (km.getNgayBatDau() != null && km.getNgayKetThuc() != null) {
-                    if (isInDateRange(now, km.getNgayBatDau(), km.getNgayKetThuc())) {
+                    if (isPromotionActive(now, km)) {
                         JPanel kmCard = taoCardKhuyenMai(km.getTenKM(), km.getPhanTramGiamGia());
                         pnlNoiDungKhuyenMai.add(kmCard);
                         pnlNoiDungKhuyenMai.add(Box.createRigidArea(new Dimension(0, 8)));
@@ -1258,6 +1258,32 @@ public class formThemPhieuDatThuoc extends JPanel {
         // Trả về true nếu: start <= current <= end
         return (current.equals(start) || current.after(start)) && 
                (current.equals(end) || current.before(end));
+    }
+
+    private boolean isPromotionActive(Date currentDate, KhuyenMai khuyenMai) {
+        if (khuyenMai == null || currentDate == null
+                || khuyenMai.getNgayBatDau() == null || khuyenMai.getNgayKetThuc() == null) {
+            return false;
+        }
+        if (!khuyenMai.isLapHangNam()) {
+            return isInDateRange(currentDate, khuyenMai.getNgayBatDau(), khuyenMai.getNgayKetThuc());
+        }
+        return isInAnnualDateRange(currentDate, khuyenMai.getNgayBatDau(), khuyenMai.getNgayKetThuc());
+    }
+
+    private boolean isInAnnualDateRange(Date currentDate, Date startDate, Date endDate) {
+        int current = monthDayValue(currentDate);
+        int start = monthDayValue(startDate);
+        int end = monthDayValue(endDate);
+        return start <= end
+                ? current >= start && current <= end
+                : current >= start || current <= end;
+    }
+
+    private int monthDayValue(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return (cal.get(Calendar.MONTH) + 1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
     }
 
     private void btnAddCustomerActionPerformed(ActionEvent evt) throws SQLException {

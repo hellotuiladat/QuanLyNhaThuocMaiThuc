@@ -190,13 +190,40 @@ public class DialogThemKhachHang extends JDialog {
             String soDienThoai = txtSoDienThoai.getText().trim();
             String email = txtEmail.getText().trim();
             
-            // Kiểm tra số điện thoại đã tồn tại chưa
-            if (khDAO.kiemTraSDTTonTai(soDienThoai)) {
-                JOptionPane.showMessageDialog(this, 
-                    "Số điện thoại này đã được đăng ký cho khách hàng khác!", 
-                    "Lỗi", 
-                    JOptionPane.ERROR_MESSAGE);
-                txtSoDienThoai.requestFocus();
+            KhachHang khDaTonTai = khDAO.getKhachHangTheoSDTBaoGomDaAn(soDienThoai);
+            if (khDaTonTai != null) {
+                if (khDAO.khachHangDangHoatDong(khDaTonTai.getMaKH())) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Số điện thoại này đã được đăng ký cho khách hàng khác!", 
+                        "Lỗi", 
+                        JOptionPane.ERROR_MESSAGE);
+                    txtSoDienThoai.requestFocus();
+                    return;
+                }
+
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "Khách hàng đã từng tồn tại, bạn có muốn khôi phục khách hàng này?",
+                    "Khôi phục khách hàng",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    KhachHang khKhoiPhuc = new KhachHang(khDaTonTai.getMaKH(), hoTen, soDienThoai, email);
+                    boolean restored = khDAO.khoiPhucKhachHang(khKhoiPhuc);
+                    if (restored) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Khôi phục khách hàng thành công!\nMã khách hàng: " + khDaTonTai.getMaKH(), 
+                            "Thành công", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                        parentForm.reloadTable();
+                        dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(this, 
+                            "Khôi phục khách hàng thất bại!", 
+                            "Lỗi", 
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                }
                 return;
             }
             

@@ -463,17 +463,43 @@ public class FormPhieuNhapThuoc extends JPanel {
         }
 
         try {
-            String searchType = (String) cboxSearch.getSelectedItem();
+            int searchType = cboxSearch.getSelectedIndex();
+            String keyword = tuKhoa.toLowerCase();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            ArrayList<PhieuNhapThuoc> danhSach = pnhDAO.getDSPhieuNhapThuoc();
             ArrayList<PhieuNhapThuoc> ketQua = new ArrayList<>();
 
-            if (searchType.equals("Mã phiếu")) {
-                ketQua = pnhDAO.timKiemPhieuNhap(tuKhoa, null, null, null, null);
-            } else if (searchType.equals("Mã nhân viên")) {
-                ketQua = pnhDAO.timKiemPhieuNhap(null, tuKhoa, null, null, null);
-            } else if (searchType.equals("Mã nhà cung cấp")) {
-                ketQua = pnhDAO.timKiemPhieuNhap(null, null, tuKhoa, null, null);
-            } else {
-                ketQua = pnhDAO.getDSPhieuNhapThuoc();
+            for (PhieuNhapThuoc pnh : danhSach) {
+                String maPhieuNhap = pnh.getMaPhieuNhap();
+                String maNV = pnh.getNhanVien() != null ? pnh.getNhanVien().getMaNV() : "";
+                String maNCC = pnh.getNhaCungCap() != null ? pnh.getNhaCungCap().getMaNCC() : "";
+                String ngayNhap = pnh.getNgayNhap() != null ? sdf.format(pnh.getNgayNhap()) : "";
+
+                boolean match;
+                switch (searchType) {
+                    case 1:
+                        match = containsIgnoreCase(maPhieuNhap, keyword);
+                        break;
+                    case 2:
+                        match = containsIgnoreCase(maNV, keyword);
+                        break;
+                    case 3:
+                        match = containsIgnoreCase(maNCC, keyword);
+                        break;
+                    case 4:
+                        match = containsIgnoreCase(ngayNhap, keyword);
+                        break;
+                    default:
+                        match = containsIgnoreCase(maPhieuNhap, keyword)
+                                || containsIgnoreCase(maNV, keyword)
+                                || containsIgnoreCase(maNCC, keyword)
+                                || containsIgnoreCase(ngayNhap, keyword);
+                        break;
+                }
+
+                if (match) {
+                    ketQua.add(pnh);
+                }
             }
 
             loadTableFromList(ketQua);
@@ -487,6 +513,10 @@ public class FormPhieuNhapThuoc extends JPanel {
                 JOptionPane.ERROR_MESSAGE
             );
         }
+    }
+
+    private boolean containsIgnoreCase(String value, String keyword) {
+        return value != null && value.toLowerCase().contains(keyword);
     }
 
     /**

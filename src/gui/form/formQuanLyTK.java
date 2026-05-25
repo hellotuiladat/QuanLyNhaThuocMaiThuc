@@ -206,7 +206,12 @@ public class formQuanLyTK extends JPanel implements ActionListener {
         tablePanel.setLayout(new BorderLayout());
         
         String[] tableTitle = {"Tên đăng nhập", "Mật khẩu", "Trạng thái", "Mã nhân viên", "Vai trò"};
-        tableModel = new DefaultTableModel(tableTitle, 0);
+        tableModel = new DefaultTableModel(tableTitle, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         table.getTableHeader().setFont(headerTable);
         table.setModel(tableModel);
 

@@ -176,7 +176,12 @@ public class formDanhMucThuoc extends JPanel {
         tablePanel.setLayout(new BorderLayout());
         
         String[] tableTitle = {"Mã danh mục", "Tên danh mục"};
-        tableModel = new DefaultTableModel(tableTitle, 0);
+        tableModel = new DefaultTableModel(tableTitle, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         table.getTableHeader().setFont(headerTable);
         table.setModel(tableModel);
 

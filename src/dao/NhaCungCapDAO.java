@@ -52,9 +52,7 @@ public class NhaCungCapDAO {
                 String maNCC = rs.getString("maNCC");
                 String tenNCC = rs.getString("tenNCC");
                 String soDienThoai = rs.getString("soDienThoai");
-                double congNo = rs.getDouble("congNo");
-                
-                NhaCungCap ncc = new NhaCungCap(maNCC, tenNCC, soDienThoai, congNo);
+                NhaCungCap ncc = new NhaCungCap(maNCC, tenNCC, soDienThoai);
                 dsNCC.add(ncc);
             }
         }
@@ -67,15 +65,13 @@ public class NhaCungCapDAO {
      * @return true nếu thêm thành công, false nếu thất bại
      */
     public boolean themNhaCungCap(NhaCungCap ncc) throws SQLException {
-        String sql = "INSERT INTO NhaCungCap(maNCC, tenNCC, soDienThoai, congNo) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO NhaCungCap(maNCC, tenNCC, soDienThoai) VALUES (?, ?, ?)";
         try (Connection con = getSafeConnection();
              PreparedStatement stmt = con.prepareStatement(sql)) {
             
             stmt.setString(1, ncc.getMaNCC());
             stmt.setString(2, ncc.getTenNCC());
             stmt.setString(3, ncc.getSoDienThoai());
-            stmt.setDouble(4, ncc.getCongNo());
-            
             return stmt.executeUpdate() > 0;
         }
     }
@@ -86,14 +82,13 @@ public class NhaCungCapDAO {
      * @return true nếu cập nhật thành công, false nếu thất bại
      */
     public boolean capNhatNhaCungCap(NhaCungCap ncc) throws SQLException {
-        String sql = "UPDATE NhaCungCap SET tenNCC = ?, soDienThoai = ?, congNo = ? WHERE maNCC = ?";
+        String sql = "UPDATE NhaCungCap SET tenNCC = ?, soDienThoai = ? WHERE maNCC = ?";
         try (Connection con = getSafeConnection();
              PreparedStatement stmt = con.prepareStatement(sql)) {
             
             stmt.setString(1, ncc.getTenNCC());
             stmt.setString(2, ncc.getSoDienThoai());
-            stmt.setDouble(3, ncc.getCongNo());
-            stmt.setString(4, ncc.getMaNCC());
+            stmt.setString(3, ncc.getMaNCC());
             
             return stmt.executeUpdate() > 0;
         }
@@ -127,9 +122,7 @@ public class NhaCungCapDAO {
                 if (rs.next()) {
                     String tenNCC = rs.getString("tenNCC");
                     String soDienThoai = rs.getString("soDienThoai");
-                    double congNo = rs.getDouble("congNo");
-                    
-                    return new NhaCungCap(maNCC, tenNCC, soDienThoai, congNo);
+                    return new NhaCungCap(maNCC, tenNCC, soDienThoai);
                 }
             }
         }
@@ -174,9 +167,7 @@ public class NhaCungCapDAO {
                     String maNCC = rs.getString("maNCC");
                     String tenNCC = rs.getString("tenNCC");
                     String soDienThoai = rs.getString("soDienThoai");
-                    double congNo = rs.getDouble("congNo");
-                    
-                    NhaCungCap ncc = new NhaCungCap(maNCC, tenNCC, soDienThoai, congNo);
+                    NhaCungCap ncc = new NhaCungCap(maNCC, tenNCC, soDienThoai);
                     dsNCC.add(ncc);
                 }
             }
@@ -203,9 +194,7 @@ public class NhaCungCapDAO {
                     String maNCC = rs.getString("maNCC");
                     String tenNCC = rs.getString("tenNCC");
                     String soDienThoai = rs.getString("soDienThoai");
-                    double congNo = rs.getDouble("congNo");
-                    
-                    NhaCungCap ncc = new NhaCungCap(maNCC, tenNCC, soDienThoai, congNo);
+                    NhaCungCap ncc = new NhaCungCap(maNCC, tenNCC, soDienThoai);
                     dsNCC.add(ncc);
                 }
             }
@@ -217,8 +206,7 @@ public class NhaCungCapDAO {
      * Tìm kiếm nâng cao nhà cung cấp với nhiều tiêu chí
      */
     public ArrayList<NhaCungCap> timKiemNangCao(
-            String maNCC, String tenNCC, String soDienThoai,
-            Double congNoTu, Double congNoDen) throws SQLException {
+            String maNCC, String tenNCC, String soDienThoai) throws SQLException {
         
         ArrayList<NhaCungCap> ketQua = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM NhaCungCap WHERE 1=1");
@@ -240,16 +228,6 @@ public class NhaCungCapDAO {
             params.add("%" + soDienThoai + "%");
         }
         
-        if (congNoTu != null && congNoTu >= 0) {
-            sql.append(" AND congNo >= ?");
-            params.add(congNoTu);
-        }
-        
-        if (congNoDen != null && congNoDen >= 0) {
-            sql.append(" AND congNo <= ?");
-            params.add(congNoDen);
-        }
-        
         sql.append(" ORDER BY maNCC DESC");
         
         try (Connection con = getSafeConnection();
@@ -265,9 +243,7 @@ public class NhaCungCapDAO {
                     String maNCCRS = rs.getString("maNCC");
                     String tenNCCRS = rs.getString("tenNCC");
                     String soDienThoaiRS = rs.getString("soDienThoai");
-                    double congNoRS = rs.getDouble("congNo");
-                    
-                    NhaCungCap ncc = new NhaCungCap(maNCCRS, tenNCCRS, soDienThoaiRS, congNoRS);
+                    NhaCungCap ncc = new NhaCungCap(maNCCRS, tenNCCRS, soDienThoaiRS);
                     ketQua.add(ncc);
                 }
             }

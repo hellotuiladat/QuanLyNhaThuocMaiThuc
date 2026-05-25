@@ -7,6 +7,7 @@ import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -305,8 +306,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
             ArrayList<KhuyenMai> dsKhuyenMai = khuyenMaiDAO.getDsKhuyenMai();
 
             for (KhuyenMai km : dsKhuyenMai) {
-                if (km.getNgayBatDau() != null && km.getNgayKetThuc() != null
-                    && isInDateRange(ngayDat, km.getNgayBatDau(), km.getNgayKetThuc())) {
+                if (isPromotionActive(ngayDat, km)) {
 
                     if (km.getPhanTramGiamGia() > phanTramGiamGia) {
                         phanTramGiamGia = km.getPhanTramGiamGia();
@@ -721,6 +721,32 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
     private boolean isInDateRange(Date currentDate, Date startDate, Date endDate) {
         if (currentDate == null || startDate == null || endDate == null) return false;
         return ! currentDate.before(startDate) && !currentDate.after(endDate);
+    }
+
+    private boolean isPromotionActive(Date currentDate, KhuyenMai khuyenMai) {
+        if (khuyenMai == null || currentDate == null
+                || khuyenMai.getNgayBatDau() == null || khuyenMai.getNgayKetThuc() == null) {
+            return false;
+        }
+        if (!khuyenMai.isLapHangNam()) {
+            return isInDateRange(currentDate, khuyenMai.getNgayBatDau(), khuyenMai.getNgayKetThuc());
+        }
+        return isInAnnualDateRange(currentDate, khuyenMai.getNgayBatDau(), khuyenMai.getNgayKetThuc());
+    }
+
+    private boolean isInAnnualDateRange(Date currentDate, Date startDate, Date endDate) {
+        int current = monthDayValue(currentDate);
+        int start = monthDayValue(startDate);
+        int end = monthDayValue(endDate);
+        return start <= end
+                ? current >= start && current <= end
+                : current >= start || current <= end;
+    }
+
+    private int monthDayValue(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return (cal.get(Calendar.MONTH) + 1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
     }
 
     public boolean isConfirmed() {

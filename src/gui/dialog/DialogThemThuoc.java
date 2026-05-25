@@ -61,14 +61,14 @@ public class DialogThemThuoc extends JDialog {
     }
 
     private void initComponents() {
-        setSize(620, 690);
+        setSize(760, 760);
         setResizable(false);
         getContentPane().setBackground(FOOTER_BG);
         setLayout(new BorderLayout(0, 0));
 
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 12));
         titlePanel.setBackground(PRIMARY);
-        titlePanel.setPreferredSize(new Dimension(620, 60));
+        titlePanel.setPreferredSize(new Dimension(760, 60));
         JLabel lblTitle = new JLabel("THÊM THUỐC MỚI");
         lblTitle.setFont(new Font("Roboto", Font.BOLD, 24));
         lblTitle.setForeground(Color.WHITE);
@@ -89,7 +89,7 @@ public class DialogThemThuoc extends JDialog {
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(new EmptyBorder(22, 74, 20, 74));
+        formPanel.setBorder(new EmptyBorder(18, 28, 18, 28));
 
         txtTenThuoc = createTextField();
         cboxDanhMuc = createComboBox();
@@ -107,15 +107,15 @@ public class DialogThemThuoc extends JDialog {
         addRow(formPanel, row++, "Xuất xứ:", txtXuatXu);
         addRow(formPanel, row++, "Giá bán:", txtGiaBan);
         addRow(formPanel, row++, "Hình ảnh:", txtHinhAnh);
-        addRow(formPanel, row++, "Thành phần:", wrapTextArea(txtThanhPhan, 72));
-        addRow(formPanel, row++, "Mô tả:", wrapTextArea(txtMoTa, 72));
+        addRow(formPanel, row++, "Thành phần:", wrapTextArea(txtThanhPhan));
+        addRow(formPanel, row++, "Mô tả:", wrapTextArea(txtMoTa));
 
         centerPanel.add(formPanel, BorderLayout.CENTER);
         add(centerPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 16));
         buttonPanel.setBackground(FOOTER_BG);
-        buttonPanel.setPreferredSize(new Dimension(620, 76));
+        buttonPanel.setPreferredSize(new Dimension(760, 90));
 
         JButton btnLuu = createPrimaryButton("LƯU");
         btnLuu.setIcon(null);
@@ -131,25 +131,26 @@ public class DialogThemThuoc extends JDialog {
 
     private void addRow(JPanel panel, int row, String label, java.awt.Component field) {
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(7, 6, 7, 6);
+        gbc.insets = new Insets(6, 6, 6, 6);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0;
         gbc.gridy = row;
-        gbc.weightx = 0.30;
+        gbc.weightx = 0.18;
+        gbc.anchor = GridBagConstraints.WEST;
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Roboto", Font.BOLD, 13));
         panel.add(lbl, gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 0.70;
+        gbc.weightx = 0.82;
         panel.add(field, gbc);
     }
 
     private JTextField createTextField() {
         JTextField field = new JTextField();
         field.setFont(new Font("Roboto", Font.PLAIN, 14));
-        field.setPreferredSize(new Dimension(300, 34));
+        field.setPreferredSize(new Dimension(520, 38));
         field.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(FIELD_BORDER, 1),
                 new EmptyBorder(5, 10, 5, 10)));
@@ -159,7 +160,7 @@ public class DialogThemThuoc extends JDialog {
     private JComboBox<String> createComboBox() {
         JComboBox<String> combo = new JComboBox<>();
         combo.setFont(new Font("Roboto", Font.PLAIN, 14));
-        combo.setPreferredSize(new Dimension(300, 34));
+        combo.setPreferredSize(new Dimension(520, 38));
         combo.setBackground(Color.WHITE);
         return combo;
     }
@@ -173,9 +174,9 @@ public class DialogThemThuoc extends JDialog {
         return area;
     }
 
-    private JScrollPane wrapTextArea(JTextArea area, int height) {
+    private JScrollPane wrapTextArea(JTextArea area) {
         JScrollPane scroll = new JScrollPane(area);
-        scroll.setPreferredSize(new Dimension(300, height));
+        scroll.setPreferredSize(new Dimension(520, 92));
         scroll.setBorder(new LineBorder(FIELD_BORDER, 1));
         return scroll;
     }
@@ -183,7 +184,7 @@ public class DialogThemThuoc extends JDialog {
     private JButton createPrimaryButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Roboto", Font.BOLD, 13));
-        button.setPreferredSize(new Dimension(110, 38));
+        button.setPreferredSize(new Dimension(150, 44));
         button.setBackground(PRIMARY);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
@@ -195,7 +196,7 @@ public class DialogThemThuoc extends JDialog {
     private JButton createDangerButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Roboto", Font.BOLD, 13));
-        button.setPreferredSize(new Dimension(110, 38));
+        button.setPreferredSize(new Dimension(150, 44));
         button.setBackground(new Color(220, 53, 69));
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);

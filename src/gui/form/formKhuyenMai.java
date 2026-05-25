@@ -101,7 +101,9 @@ public class formKhuyenMai extends JPanel implements ActionListener {
         btnAdd.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnAdd.setPreferredSize(new Dimension(90, 90));
         btnAdd.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        actionPanel.add(btnAdd);
+        if (choPhepSuaXoa) {
+            actionPanel.add(btnAdd);
+        }
 
         // Nút SỬA
         btnUpdate = new JButton("SỬA");
@@ -177,7 +179,12 @@ public class formKhuyenMai extends JPanel implements ActionListener {
         jPanel1.add(jPanel3);
         
         String[] tableTitle = {"Mã khuyến mãi", "Tên khuyến mãi", "Ngày bắt đầu", "Ngày kết thúc", "Phần trăm giảm giá"};
-        tableModel = new DefaultTableModel(tableTitle, 0);
+        tableModel = new DefaultTableModel(tableTitle, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         
         table = new JTable(tableModel); 
         table.getTableHeader().setFont(headerTable);
@@ -247,6 +254,10 @@ public class formKhuyenMai extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Object o = e.getSource();
         if (o.equals(btnAdd)) {
+            if (!choPhepSuaXoa) {
+                thongBaoKhongCoQuyen();
+                return;
+            }
             new DialogThemKhuyenMai((Frame) SwingUtilities.getWindowAncestor(this), this).setVisible(true);
         } else if (o.equals(btnReload)) {
             txtSearch.setText("");

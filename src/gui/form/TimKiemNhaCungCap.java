@@ -3,7 +3,6 @@ package gui.form;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -22,8 +21,6 @@ public class TimKiemNhaCungCap extends JPanel {
     private JTextField txtMaNCC;
     private JTextField txtTenNCC;
     private JTextField txtSoDienThoai;
-    private JTextField txtCongNoTu;
-    private JTextField txtCongNoDen;
     
     // Button Components
     private JButton btnTimKiem;
@@ -143,21 +140,6 @@ public class TimKiemNhaCungCap extends JPanel {
         txtSoDienThoai = createTextField();
         formPanel.add(txtSoDienThoai, gbc);
         
-        // Row 3: Công nợ từ, Công nợ đến
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.15;
-        formPanel.add(createLabel("Công nợ từ:"), gbc);
-        
-        gbc.gridx = 1; gbc.weightx = 0.35;
-        txtCongNoTu = createTextField();
-        formPanel.add(txtCongNoTu, gbc);
-        
-        gbc.gridx = 2; gbc.weightx = 0.15;
-        formPanel.add(createLabel("Công nợ đến:"), gbc);
-        
-        gbc.gridx = 3; gbc.weightx = 0.35;
-        txtCongNoDen = createTextField();
-        formPanel.add(txtCongNoDen, gbc);
-        
         mainPanel.add(formPanel, BorderLayout.CENTER);
         
         // Button Panel
@@ -254,7 +236,7 @@ public class TimKiemNhaCungCap extends JPanel {
         tablePanel.add(resultPanel, BorderLayout.NORTH);
         
         // Table
-        String[] columns = {"Mã NCC", "Tên NCC", "Số điện thoại", "Công nợ"};
+        String[] columns = {"Mã NCC", "Tên NCC", "Số điện thoại"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -284,8 +266,6 @@ public class TimKiemNhaCungCap extends JPanel {
         table.getColumnModel().getColumn(0).setPreferredWidth(150);
         table.getColumnModel().getColumn(1).setPreferredWidth(300);
         table.getColumnModel().getColumn(2).setPreferredWidth(150);
-        table.getColumnModel().getColumn(3).setPreferredWidth(150);
-        
         scrollPane = new JScrollPane(table);
         scrollPane.setBorder(new LineBorder(new Color(230, 230, 230), 2, true));
         scrollPane.getViewport().setBackground(Color.WHITE);
@@ -328,47 +308,9 @@ public class TimKiemNhaCungCap extends JPanel {
             String tenNCC = txtTenNCC.getText().trim();
             String soDienThoai = txtSoDienThoai.getText().trim();
             
-            Double congNoTu = null;
-            Double congNoDen = null;
-            
-            // Parse công nợ từ
-            if (!txtCongNoTu.getText().trim().isEmpty()) {
-                try {
-                    congNoTu = Double.parseDouble(txtCongNoTu.getText().trim());
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this,
-                        "Công nợ từ phải là số!",
-                        "Lỗi",
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-            
-            // Parse công nợ đến
-            if (!txtCongNoDen.getText().trim().isEmpty()) {
-                try {
-                    congNoDen = Double.parseDouble(txtCongNoDen.getText().trim());
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this,
-                        "Công nợ đến phải là số!",
-                        "Lỗi",
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-            
-            // Kiểm tra logic công nợ từ < đến
-            if (congNoTu != null && congNoDen != null && congNoTu > congNoDen) {
-                JOptionPane.showMessageDialog(this,
-                    "Công nợ từ phải nhỏ hơn hoặc bằng công nợ đến!",
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
             // Tìm kiếm
             ArrayList<NhaCungCap> ketQua = nccDAO.timKiemNangCao(
-                maNCC, tenNCC, soDienThoai, congNoTu, congNoDen
+                maNCC, tenNCC, soDienThoai
             );
             
             // Hiển thị kết quả
@@ -388,14 +330,12 @@ public class TimKiemNhaCungCap extends JPanel {
      */
     private void hienThiKetQua(ArrayList<NhaCungCap> dsNCC) {
         tableModel.setRowCount(0);
-        DecimalFormat df = new DecimalFormat("#,##0.00");
         
         for (NhaCungCap ncc : dsNCC) {
             tableModel.addRow(new Object[]{
                 ncc.getMaNCC(),
                 ncc.getTenNCC(),
-                ncc.getSoDienThoai(),
-                df.format(ncc.getCongNo()) + " đ"
+                ncc.getSoDienThoai()
             });
         }
         
@@ -416,8 +356,6 @@ public class TimKiemNhaCungCap extends JPanel {
         txtMaNCC.setText("");
         txtTenNCC.setText("");
         txtSoDienThoai.setText("");
-        txtCongNoTu.setText("");
-        txtCongNoDen.setText("");
 
         hienThiTatCaNhaCungCap();
     }

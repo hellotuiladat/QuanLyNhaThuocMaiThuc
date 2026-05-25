@@ -33,6 +33,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import dao.KhachHangDAO;
 import entity.KhachHang;
+import entity.TaiKhoan;
 import gui.dialog.DialogCapNhatKhachHang;
 import gui.dialog.DialogThemKhachHang;
 import gui.dialog.DialogThongTinKhachHang;
@@ -57,9 +58,15 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
     private DefaultTableModel tableModel;
     private KhachHangDAO khDAO;
     private ArrayList<KhachHang> dsKhachHang = new ArrayList<>();
+    private boolean choPhepXoa = true;
     Font headerTable = new Font("Roboto", Font.BOLD, 18);
     
     public FormQuanLyKhachHang() {
+        this(null);
+    }
+
+    public FormQuanLyKhachHang(TaiKhoan taiKhoan) {
+        choPhepXoa = coQuyenQuanLy(taiKhoan);
         khDAO = new KhachHangDAO();
         taoNoiDung();
         addActionListeners();
@@ -186,7 +193,9 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
         btnDelete.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnDelete.setPreferredSize(new Dimension(90, 90));
         btnDelete.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        actionPanel.add(btnDelete);
+        if (choPhepXoa) {
+            actionPanel.add(btnDelete);
+        }
 
         btnInfo.setFont(new Font("Roboto", Font.BOLD, 14));
         btnInfo.setIcon(new FlatSVGIcon(getClass().getResource("/img/info.svg")));
@@ -343,6 +352,10 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
     }
     
     private void xoaKhachHang() {
+        if (!choPhepXoa) {
+            thongBaoKhongCoQuyen();
+            return;
+        }
         int selectedRow = table.getSelectedRow();
         
         if (selectedRow == -1) {
@@ -360,7 +373,7 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
             "Bạn có chắc chắn muốn xóa khách hàng:\n" + 
             "Mã: " + maKH + "\n" +
             "Tên: " + tenKH + "?\n\n" +
-            "Lưu ý: Việc này có thể ảnh hưởng đến dữ liệu hóa đơn và đơn đặt thuốc!",
+            "Khách hàng sẽ không còn hiển thị trong danh sách, nhưng lịch sử hóa đơn và phiếu đặt vẫn được giữ.",
             "Xác nhận xóa", 
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE);
@@ -379,7 +392,7 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
                     reloadTable();
                 } else {
                     JOptionPane.showMessageDialog(this, 
-                        "Xóa khách hàng thất bại! Khách hàng này có thể đang được sử dụng trong các bảng khác.", 
+                        "Xóa khách hàng thất bại!", 
                         "Lỗi", 
                         JOptionPane.ERROR_MESSAGE);
                 }
@@ -452,6 +465,17 @@ public class FormQuanLyKhachHang extends JPanel implements ActionListener {
 
     private String safeLower(String value) {
         return value == null ? "" : value.toLowerCase();
+    }
+
+    private boolean coQuyenQuanLy(TaiKhoan taiKhoan) {
+        return taiKhoan == null || "Nhân viên quản lý".equals(taiKhoan.getVaiTro());
+    }
+
+    private void thongBaoKhongCoQuyen() {
+        JOptionPane.showMessageDialog(this,
+                "Nhân viên không được phép thực hiện chức năng này",
+                "Không có quyền",
+                JOptionPane.WARNING_MESSAGE);
     }
 
     

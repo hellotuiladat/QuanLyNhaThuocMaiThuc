@@ -158,7 +158,9 @@ public class formQuanLyThuoc extends JPanel {
         btnAdd.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnAdd.setPreferredSize(new Dimension(90, 90));
         btnAdd.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        actionPanel.add(btnAdd);
+        if (choPhepSuaXoa) {
+            actionPanel.add(btnAdd);
+        }
 
         btnUpdate.setFont(new Font("Roboto", Font.BOLD, 14));
         btnUpdate.setIcon(new FlatSVGIcon(getClass().getResource("/img/update.svg")));
@@ -339,6 +341,10 @@ public class formQuanLyThuoc extends JPanel {
     }
     
     private void themThuoc() {
+        if (!choPhepSuaXoa) {
+            thongBaoKhongCoQuyen();
+            return;
+        }
         DialogThemThuoc dialog = new DialogThemThuoc(
             (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this)
         );
