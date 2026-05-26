@@ -346,11 +346,6 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         paymentPanel.add(txtGiamGia);
         
        
-        double tongTienSauKhiKhuyenMai = tongTienTruocKhiKhuyenMai;
-        if (khuyenMaiApDung != null) {
-            tongTienSauKhiKhuyenMai -= tongTienTruocKhiKhuyenMai * khuyenMaiApDung.getPhanTramGiamGia() / 100;
-        }
-        
         // ===== THUẾ =====
         double tienThue = 0;
         double phanTramThue = 0;
@@ -364,7 +359,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
 
                 phanTramThue = thue.getPhanTramThue();
                 tenThue = thue.getTenThue() + " (" + String.format("%.0f%%", phanTramThue) + ")";
-                tienThue = tongTienSauKhiKhuyenMai * phanTramThue / 100;
+                tienThue = tongTienTruocKhiKhuyenMai * phanTramThue / 100;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -379,7 +374,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         txtThue.setFont(paymentFont);
         paymentPanel.add(txtThue);
 
-        double thanhTien = tongTienSauKhiKhuyenMai + tienThue;
+        double thanhTien = tongTienTruocKhiKhuyenMai - giamGia + tienThue;
 
         JLabel lblThanhTienLabel = new JLabel("Thành tiền:");
         lblThanhTienLabel.setFont(new Font("Roboto", Font. BOLD, 16));

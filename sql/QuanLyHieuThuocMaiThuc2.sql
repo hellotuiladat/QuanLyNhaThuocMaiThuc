@@ -253,10 +253,10 @@ INSERT INTO DanhMucThuoc (maDanhMuc, tenDanhMuc) VALUES
 
 -- KhuyenMai (KM00001, KM00002, ...)
 INSERT INTO KhuyenMai (maKM, tenKM, ngayBatDau, ngayKetThuc, phanTramGiamGia, lapHangNam) VALUES
-(N'KM00001', N'Khuyến mãi Tết Nguyên Đán', '2026-01-01', '2026-01-31', 10.00, 1),
-(N'KM00002', N'Khuyến mãi mùa hè', '2026-04-30', '2026-06-30', 5.00, 1),
-(N'KM00003', N'Khuyến mãi 30/4 - 1/5', '2026-04-28', '2026-05-03', 15.00, 1),
-(N'KM00004', N'Khuyến mãi Black Friday', '2026-11-25', '2026-11-30', 20.00, 1);
+(N'KM00001', N'Khuyến mãi Tết Nguyên Đán', '2026-01-01', '2026-01-31', 25.00, 1),
+(N'KM00002', N'Khuyến mãi mùa hè', '2026-04-30', '2026-06-30', 15.00, 1),
+(N'KM00003', N'Khuyến mãi 30/4 - 1/5', '2026-04-28', '2026-05-03', 20.00, 1),
+(N'KM00004', N'Khuyến mãi Black Friday', '2026-11-25', '2026-11-30', 25.00, 1);
 
 -- Thuoc (TH00001, TH00002, ...)
 INSERT INTO Thuoc (maThuoc, tenThuoc, donViTinh, giaBan, moTa, maDanhMuc, hinhAnh, thanhPhan, xuatXu) VALUES

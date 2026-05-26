@@ -984,10 +984,8 @@ public class formLapHoaDon extends JPanel {
                 : 0;
 
         tienGiamGia = tongTienTruocKhuyenMaiVaThue * phanTramGiam / 100;
-        double tienSauGiam = tongTienTruocKhuyenMaiVaThue - tienGiamGia;
-
-        tienThue = tienSauGiam * phanTramThue / 100;
-        double tongThanhToan = tienSauGiam + tienThue;
+        tienThue = tongTienTruocKhuyenMaiVaThue * phanTramThue / 100;
+        double tongThanhToan = tongTienTruocKhuyenMaiVaThue - tienGiamGia + tienThue;
 
         tongThanhToan = Math.round(tongThanhToan);
         tongTien = tongThanhToan;
