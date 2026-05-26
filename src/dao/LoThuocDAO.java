@@ -1,6 +1,5 @@
 package dao;
 
-import ConnectDB.DatabaseConnection;
 import entity.LoThuoc;
 import entity.PhieuNhapThuoc;
 import entity.Thuoc;
@@ -11,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
+import connectdb.DatabaseConnection;
 
 public class LoThuocDAO {
     private Connection getSafeConnection() throws SQLException {

@@ -735,7 +735,7 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 		else if (command.equals("Lập hoá đơn")) {
 		    System.out.println("Hiển thị form lập hóa đơn");
 		    try {
-				hienThiForm(new formLapHoaDon(taiKhoan));
+				hienThiForm(new FormLapHoaDon(taiKhoan));
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
@@ -743,19 +743,19 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 		
 		// Xử lý cho các chức năng Nhân Viên
 		else if(command.equals("Quản lý nhân viên")) {
-			hienThiForm(new formQuanLyNhanVien());
+			hienThiForm(new FormQuanLyNhanVien());
 		}
 		else if(command.equals("Tìm kiếm nhân viên")) {
-			hienThiForm(new formTimKiemNV());
+			hienThiForm(new FormTimKiemNV());
 		}
 		else if(command.equals("Khuyến mãi")) {
-			hienThiForm(new formKhuyenMai(taiKhoan));
+			hienThiForm(new FormKhuyenMai(taiKhoan));
 		}
 		else if(command.equals("Thuế")) {
-			hienThiForm(new formThue(taiKhoan));
+			hienThiForm(new FormThue(taiKhoan));
 		}
 		else if (command.equals("Quản lý phiếu đặt thuốc") || command.equals("Phiếu Đặt Thuốc")) {
-			hienThiForm(new formPhieuDatThuoc(taiKhoan));
+			hienThiForm(new FormPhieuDatThuoc(taiKhoan));
 		}
 		else if (command.equals("Quản lý phiếu nhập thuốc") || command.equals("Phiếu Nhập Thuốc")) {
 			hienThiForm(new FormPhieuNhapThuoc(taiKhoan));
@@ -773,31 +773,31 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 			hienThiForm(new FormQuanLyKhachHang(taiKhoan));
 		}
 		else if(command.equals("Tìm kiếm khách hàng")) {
-			hienThiForm(new formTimKiemKH());
+			hienThiForm(new FormTimKiemKH());
 		}
 		
 		// Xử lý cho các chức năng Tài Khoản
 		else if(command.equals("Quản lý tài khoản")) {
-			hienThiForm(new formQuanLyTK());
+			hienThiForm(new FormQuanLyTK());
 		}
 		
 		// Xử lý cho các chức năng Thuốc
 		else if(command.equals("Quản lý thuốc")) {
-			hienThiForm(new formQuanLyThuoc(taiKhoan));
+			hienThiForm(new FormQuanLyThuoc(taiKhoan));
 		}
 		else if(command.equals("Tìm kiếm thuốc")) {
-			hienThiForm(new formTimKiemThuoc());
+			hienThiForm(new FormTimKiemThuoc());
 		}
 		else if(command.equals("Danh Mục Thuốc")) {
 			try {
-				hienThiForm(new formDanhMucThuoc(taiKhoan));
+				hienThiForm(new FormDanhMucThuoc(taiKhoan));
 			} catch (SQLException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			}
 		else if(command.equals("Quản lý đổi/trả thuốc")) {
-			hienThiForm(new formQuanLyDoiTraThuoc());
+			hienThiForm(new FormQuanLyDoiTraThuoc());
 		}
 		
 		// Xử lý cho các chức năng nhà cung cấp

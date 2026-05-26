@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import ConnectDB.DatabaseConnection; // Giả định bạn đã có lớp này
+import connectdb.DatabaseConnection;
 import entity.NhaCungCap;
 
 public class NhaCungCapDAO {

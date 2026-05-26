@@ -39,7 +39,7 @@ import gui.dialog.DialogCapNhatNhanVien;
 import gui.dialog.DialogThemNhanVien;
 import gui.dialog.DialogThongTinNhanVien;
 
-public class formQuanLyNhanVien extends JPanel implements ActionListener {
+public class FormQuanLyNhanVien extends JPanel implements ActionListener {
     private JPanel actionPanel;
     private JButton btnAdd;
     private JButton btnDelete;
@@ -60,7 +60,7 @@ public class formQuanLyNhanVien extends JPanel implements ActionListener {
     private NhanVienDAO nvdao;
     private ArrayList<NhanVien> dsNhanVien = new ArrayList<>();
     Font headerTable = new Font("Roboto", Font.BOLD, 18);
-    public formQuanLyNhanVien() {
+    public FormQuanLyNhanVien() {
     	taoNoiDung();
     	addActionListeners();
     }

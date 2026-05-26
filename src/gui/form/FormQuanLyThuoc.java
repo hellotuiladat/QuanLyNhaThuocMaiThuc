@@ -41,7 +41,7 @@ import gui.dialog.DialogThemThuoc;
 import gui.dialog.DialogThongTinChiTietThuoc;
 import gui.dialog.DialogSuaThuoc;
 
-public class formQuanLyThuoc extends JPanel {
+public class FormQuanLyThuoc extends JPanel {
     private JPanel actionPanel;
     private JButton btnAdd;
     private JButton btnDelete;
@@ -66,11 +66,11 @@ public class formQuanLyThuoc extends JPanel {
     private boolean choPhepSuaXoa = true;
     Font headerTable = new Font("Roboto", Font.BOLD, 18);
     
-    public formQuanLyThuoc() {
+    public FormQuanLyThuoc() {
         this(null);
     }
 
-    public formQuanLyThuoc(TaiKhoan taiKhoan) {
+    public FormQuanLyThuoc(TaiKhoan taiKhoan) {
         choPhepSuaXoa = coQuyenQuanLy(taiKhoan);
         taoNoiDung();
         addEvents();

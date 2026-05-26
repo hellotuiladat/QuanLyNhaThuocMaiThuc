@@ -31,7 +31,7 @@ import entity.HoaDon;
 import entity.KhachHang;
 import entity.KhuyenMai;
 import entity.Thue;
-import gui.form.formLapHoaDon;
+import gui.form.FormLapHoaDon;
 import entity.NhanVien;
 
 
@@ -488,8 +488,8 @@ public class DialogThanhToanHoaDon extends JDialog  {
     
 private void taoMaQrCode() {
     try {
-        String bank = "mbbank";
-        String account = "0389470120";
+        String bank = "bidv";
+        String account = "7351363429";
         String amountStr = txtThanhTien.getText().trim()
                 .replace(",", "")
                 .replace("VNĐ", "")
@@ -522,7 +522,7 @@ private void taoMaQrCode() {
         lblAmount.setForeground(new Color(255, 51, 0));
         lblAmount.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        JLabel lblBank = new JLabel("Ngân hàng: MB Bank");
+        JLabel lblBank = new JLabel("Ngân hàng: BIDV");
         lblBank.setFont(new Font("Roboto", Font.PLAIN, 14));
         lblBank.setAlignmentX(Component.CENTER_ALIGNMENT);
         

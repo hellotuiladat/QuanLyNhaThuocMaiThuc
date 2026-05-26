@@ -29,14 +29,14 @@ import com.toedter.calendar.JDateChooser;
 import dao.DanhMucThuocDAO;
 import entity.DanhMucThuoc;
 import entity.KhuyenMai;
-import gui.form.formDanhMucThuoc;
+import gui.form.FormDanhMucThuoc;
 
 public class DialogThemDanhMucThuoc extends JDialog {
-	private formDanhMucThuoc parentForm;
+	private FormDanhMucThuoc parentForm;
 	private DanhMucThuocDAO dmtDAO;
 	private JTextField txtTenDanhMuc;
 	private JTextField txtMaDanhMuc;
-	public DialogThemDanhMucThuoc(Frame parent, formDanhMucThuoc form) {
+	public DialogThemDanhMucThuoc(Frame parent, FormDanhMucThuoc form) {
 		super(parent,"Thêm Danh Mục Thuốc", true);
 		this.parentForm = form;
 		this.dmtDAO = new DanhMucThuocDAO();

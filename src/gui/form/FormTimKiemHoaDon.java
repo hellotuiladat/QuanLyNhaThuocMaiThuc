@@ -129,7 +129,7 @@ public class FormTimKiemHoaDon extends JPanel
         lblTitle.setForeground(Color.WHITE);
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         
-        JLabel lblIcon = new JLabel(new FlatSVGIcon("./img/search.svg"));
+        JLabel lblIcon = new JLabel(new FlatSVGIcon(getClass().getResource("/img/search.svg")));
         lblIcon.setBorder(new EmptyBorder(0, 20, 0, 0));
         
         headerPanel.add(lblIcon, BorderLayout.WEST);

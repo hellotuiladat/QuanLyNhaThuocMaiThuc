@@ -35,7 +35,7 @@ import gui.dialog.DialogCapNhatKhuyenMai;
 import gui.dialog.DialogThemKhuyenMai;
 import gui.dialog.DialogThongTinKhuyenMai;
 
-public class formKhuyenMai extends JPanel implements ActionListener {
+public class FormKhuyenMai extends JPanel implements ActionListener {
     private JPanel actionPanel;
     private JButton btnAdd;
     private JButton btnDelete;
@@ -57,11 +57,11 @@ public class formKhuyenMai extends JPanel implements ActionListener {
     private boolean choPhepSuaXoa = true;
     private final Font headerTable = new Font("Roboto", Font.BOLD, 18);
     
-    public formKhuyenMai() {
+    public FormKhuyenMai() {
         this(null);
     }
 
-    public formKhuyenMai(TaiKhoan taiKhoan) {
+    public FormKhuyenMai(TaiKhoan taiKhoan) {
         choPhepSuaXoa = coQuyenQuanLy(taiKhoan);
         kmDAO = new KhuyenMaiDAO();
     	taoNoiDung();

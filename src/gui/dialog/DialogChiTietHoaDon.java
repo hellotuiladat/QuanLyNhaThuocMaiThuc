@@ -89,7 +89,7 @@ public class DialogChiTietHoaDon extends JDialog {
         JLabel lblTitle = new JLabel("CHI TIẾT HÓA ĐƠN");
         lblTitle.setFont(new Font("Roboto", Font.BOLD, 28));
         lblTitle.setForeground(Color.WHITE);
-        lblTitle.setIcon(new FlatSVGIcon("./img/info.svg", 32, 32));
+        lblTitle.setIcon(new FlatSVGIcon(getClass().getResource("/img/info.svg")).derive(32, 32));
         headerPanel.add(lblTitle);
         
         // Info Panel

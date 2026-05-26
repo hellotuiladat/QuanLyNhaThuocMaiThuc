@@ -9,7 +9,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import ConnectDB.DatabaseConnection;
+import connectdb.DatabaseConnection;
 import entity.ChiTietNhapThuoc;
 import entity.LoThuoc;
 import entity.NhaCungCap;

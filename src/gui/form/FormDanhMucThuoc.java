@@ -37,7 +37,7 @@ import entity.TaiKhoan;
 import gui.dialog.DialogCapNhatDanhMucThuoc;
 import gui.dialog.DialogThemDanhMucThuoc;
 
-public class formDanhMucThuoc extends JPanel {
+public class FormDanhMucThuoc extends JPanel {
     private JPanel actionPanel;
     private JButton btnAdd;
     private JButton btnReload;
@@ -57,11 +57,11 @@ public class formDanhMucThuoc extends JPanel {
     private boolean choPhepSuaXoa = true;
     
     Font headerTable = new Font("Roboto", Font.BOLD, 18);
-    public formDanhMucThuoc() throws SQLException {
+    public FormDanhMucThuoc() throws SQLException {
     	this(null);
     }
 
-    public formDanhMucThuoc(TaiKhoan taiKhoan) throws SQLException {
+    public FormDanhMucThuoc(TaiKhoan taiKhoan) throws SQLException {
     	choPhepSuaXoa = coQuyenQuanLy(taiKhoan);
     	taoNoiDung();
     }

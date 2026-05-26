@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import ConnectDB.DatabaseConnection;
+import connectdb.DatabaseConnection;
 
 public class LichSuDoiTraDAO {
     

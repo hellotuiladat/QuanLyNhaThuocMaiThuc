@@ -8,7 +8,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import ConnectDB.DatabaseConnection;
+import connectdb.DatabaseConnection;
 import entity.ChiTietPhieuDatThuoc; // Import thêm entity này
 import entity.KhachHang;
 import entity.KhuyenMai;

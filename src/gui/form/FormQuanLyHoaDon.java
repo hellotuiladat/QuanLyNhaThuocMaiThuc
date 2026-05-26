@@ -66,7 +66,7 @@ public class FormQuanLyHoaDon extends JPanel implements ActionListener {
         addEvents();
         btnAdd.addActionListener(e -> {
         	try {
-				parent.hienThiForm(new formLapHoaDon(tk));
+				parent.hienThiForm(new FormLapHoaDon(tk));
 			} catch (SQLException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

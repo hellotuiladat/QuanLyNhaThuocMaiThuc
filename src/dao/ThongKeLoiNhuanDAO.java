@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-import ConnectDB.DatabaseConnection;
+import connectdb.DatabaseConnection;
 
 public class ThongKeLoiNhuanDAO {
     private static final String DOANH_THU =

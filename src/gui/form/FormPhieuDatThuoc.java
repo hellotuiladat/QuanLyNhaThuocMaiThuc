@@ -46,7 +46,7 @@ import gui.dialog.DialogChiTietPhieuDatThuoc;
 import gui.dialog.DialogThanhToanHoaDon;
 import gui.dialog.DialogThanhToanPhieuDatThuoc;
 
-public class formPhieuDatThuoc extends JPanel {
+public class FormPhieuDatThuoc extends JPanel {
 
     // Components giao diện
     private JPanel pnlHeader;
@@ -78,7 +78,7 @@ public class formPhieuDatThuoc extends JPanel {
     
     private Font fontHeaderTable = new Font("Roboto", Font.BOLD, 18);
 
-    public formPhieuDatThuoc(TaiKhoan tk) {
+    public FormPhieuDatThuoc(TaiKhoan tk) {
         this.taiKhoan = tk;
         khoiTaoGiaoDien();
     }
@@ -285,7 +285,7 @@ public class formPhieuDatThuoc extends JPanel {
 			parent.removeAll();
 			
 			// Thêm Form tạo phiếu mới (FormPhieuDatThuoc)
-			parent.add(new formThemPhieuDatThuoc(taiKhoan)); 
+			parent.add(new FormThemPhieuDatThuoc(taiKhoan)); 
 			
 			// Cập nhật giao diện
 			parent.revalidate();

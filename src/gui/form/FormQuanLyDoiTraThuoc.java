@@ -16,7 +16,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-public class formQuanLyDoiTraThuoc extends JPanel {
+public class FormQuanLyDoiTraThuoc extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private PhieuDoiTraDAO phieuDoiTraDAO;
@@ -31,7 +31,7 @@ public class formQuanLyDoiTraThuoc extends JPanel {
     private String currentUser = "NV00001"; // Tạm thời hardcode
     private NumberFormat currencyFormat;
     
-    public formQuanLyDoiTraThuoc() {
+    public FormQuanLyDoiTraThuoc() {
         this.phieuDoiTraDAO = new PhieuDoiTraDAO();
         this.nvDAO = new NhanVienDAO();
         this.currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));

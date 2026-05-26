@@ -82,7 +82,7 @@ public class TimKiemNhaCungCap extends JPanel {
         lblTitle.setForeground(Color.WHITE);
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         
-        JLabel lblIcon = new JLabel(new FlatSVGIcon("./img/search.svg"));
+        JLabel lblIcon = new JLabel(new FlatSVGIcon(getClass().getResource("/img/search.svg")));
         lblIcon.setBorder(new EmptyBorder(0, 20, 0, 0));
         
         headerPanel.add(lblIcon, BorderLayout.WEST);
@@ -164,7 +164,7 @@ public class TimKiemNhaCungCap extends JPanel {
         btnTimKiem.setFocusPainted(false);
         btnTimKiem.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnTimKiem.setBorder(new LineBorder(new Color(0, 0, 205), 2, true));
-        btnTimKiem.setIcon(new FlatSVGIcon("./img/search.svg"));
+        btnTimKiem.setIcon(new FlatSVGIcon(getClass().getResource("/img/search.svg")));
         btnTimKiem.addActionListener(e -> xuLyTimKiem());
         
         // Nút Làm mới
@@ -176,7 +176,7 @@ public class TimKiemNhaCungCap extends JPanel {
         btnLamMoi.setFocusPainted(false);
         btnLamMoi.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnLamMoi.setBorder(new LineBorder(new Color(200, 200, 200), 2, true));
-        btnLamMoi.setIcon(new FlatSVGIcon("./img/reload.svg"));
+        btnLamMoi.setIcon(new FlatSVGIcon(getClass().getResource("/img/reload.svg")));
         btnLamMoi.addActionListener(e -> lamMoi());
         
         // Nút Xuất Excel
@@ -188,7 +188,7 @@ public class TimKiemNhaCungCap extends JPanel {
         btnXuatExcel.setFocusPainted(false);
         btnXuatExcel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnXuatExcel.setBorder(new LineBorder(new Color(46, 125, 50), 2, true));
-        btnXuatExcel.setIcon(new FlatSVGIcon("./img/excel.svg"));
+        btnXuatExcel.setIcon(new FlatSVGIcon(getClass().getResource("/img/excel.svg")));
         btnXuatExcel.addActionListener(e -> xuatExcel());
         
         buttonPanel.add(btnTimKiem);

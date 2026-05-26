@@ -1,4 +1,4 @@
-package ConnectDB;
+package connectdb;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -9,7 +9,7 @@ public class DatabaseConnection {
    
     private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=QLHieuThuocTayMaiThuc;encrypt=true;trustServerCertificate=true";
     private static final String USER = "sa";
-    private static final String PASSWORD = "sapassword";
+    private static final String PASSWORD = "sapassword165";
 
   
     private DatabaseConnection() {

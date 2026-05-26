@@ -5,17 +5,17 @@ import javax.swing.*;
 import javax.swing.border.*;
 import dao.ThueDAO;
 import entity.Thue;
-import gui.form.formThue;
+import gui.form.FormThue;
 
 public class DialogCapNhatThue extends JDialog {
     private JTextField txtMaThue;
     private JTextField txtTenThue;
     private JSpinner spinnerPhanTram;
     private ThueDAO thueDAO;
-    private formThue parentForm;
+    private FormThue parentForm;
     private Thue thue;
 
-    public DialogCapNhatThue(Frame parent, formThue form, Thue thue) {
+    public DialogCapNhatThue(Frame parent, FormThue form, Thue thue) {
         super(parent, "Cập Nhật Thông Tin Thuế", true);
         this.parentForm = form;
         this.thue = thue;
