@@ -10,6 +10,8 @@ import java.awt.Frame;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -487,13 +489,13 @@ public class FormPhieuNhapThuoc extends JPanel {
                         match = containsIgnoreCase(maNCC, keyword);
                         break;
                     case 4:
-                        match = containsIgnoreCase(ngayNhap, keyword);
+                        match = matchesNgayNhap(pnh.getNgayNhap(), keyword);
                         break;
                     default:
                         match = containsIgnoreCase(maPhieuNhap, keyword)
                                 || containsIgnoreCase(maNV, keyword)
                                 || containsIgnoreCase(maNCC, keyword)
-                                || containsIgnoreCase(ngayNhap, keyword);
+                                || matchesNgayNhap(pnh.getNgayNhap(), keyword);
                         break;
                 }
 
@@ -517,6 +519,50 @@ public class FormPhieuNhapThuoc extends JPanel {
 
     private boolean containsIgnoreCase(String value, String keyword) {
         return value != null && value.toLowerCase().contains(keyword);
+    }
+
+    private boolean matchesNgayNhap(Date ngayNhap, String keyword) {
+        if (ngayNhap == null || keyword == null || keyword.trim().isEmpty()) {
+            return false;
+        }
+
+        String normalizedKeyword = keyword.trim().toLowerCase();
+        SimpleDateFormat fullDate = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat shortDate = new SimpleDateFormat("d/M/yyyy");
+        SimpleDateFormat monthYear = new SimpleDateFormat("MM/yyyy");
+        SimpleDateFormat isoDate = new SimpleDateFormat("yyyy-MM-dd");
+
+        if (fullDate.format(ngayNhap).toLowerCase().contains(normalizedKeyword)
+                || shortDate.format(ngayNhap).toLowerCase().contains(normalizedKeyword)
+                || monthYear.format(ngayNhap).toLowerCase().contains(normalizedKeyword)
+                || isoDate.format(ngayNhap).toLowerCase().contains(normalizedKeyword)) {
+            return true;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(ngayNhap);
+        String ngay = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
+        String ngay2So = String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH));
+        String thang = String.valueOf(calendar.get(Calendar.MONTH) + 1);
+        String thang2So = String.format("%02d", calendar.get(Calendar.MONTH) + 1);
+        String nam = String.valueOf(calendar.get(Calendar.YEAR));
+
+        if (normalizedKeyword.matches("\\d{1,2}")) {
+            return normalizedKeyword.equals(ngay) || normalizedKeyword.equals(ngay2So);
+        }
+        if (normalizedKeyword.matches("\\d{1,2}/\\d{1,2}")) {
+            return normalizedKeyword.equals(ngay + "/" + thang)
+                    || normalizedKeyword.equals(ngay2So + "/" + thang2So)
+                    || normalizedKeyword.equals(ngay + "/" + thang2So)
+                    || normalizedKeyword.equals(ngay2So + "/" + thang);
+        }
+        if (normalizedKeyword.matches("\\d{4}")) {
+            return normalizedKeyword.equals(nam);
+        }
+
+        String digitsOnlyKeyword = normalizedKeyword.replaceAll("\\D", "");
+        String digitsOnlyDate = fullDate.format(ngayNhap).replaceAll("\\D", "");
+        return !digitsOnlyKeyword.isEmpty() && digitsOnlyDate.contains(digitsOnlyKeyword);
     }
 
     /**

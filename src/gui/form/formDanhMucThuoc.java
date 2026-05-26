@@ -8,7 +8,9 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
 import java.sql.SQLException;
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -22,6 +24,8 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -104,11 +108,28 @@ public class formDanhMucThuoc extends JPanel {
         String[] searchType = {"Tất cả", "Mã danh mục", "Tên danh mục"};
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(searchType);
         cboxSearch.setModel(model);
+        cboxSearch.addActionListener(e -> search());
         jPanel3.add(cboxSearch);
 
         txtSearch.setToolTipText("Tìm kiếm");
         txtSearch.setPreferredSize(new Dimension(240, 40));
         txtSearch.setSelectionColor(new Color(230, 245, 245));
+        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                search();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                search();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                search();
+            }
+        });
         
         jPanel3.add(txtSearch);
 
@@ -122,6 +143,15 @@ public class formDanhMucThuoc extends JPanel {
         btnReload.setFocusable(false);
         btnReload.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnReload.setPreferredSize(new Dimension(48, 48)); // Slightly larger button
+        btnReload.addActionListener(e -> {
+            txtSearch.setText("");
+            try {
+                reloadTable();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Loi khi tai lai du lieu danh muc thuoc!", "Loi SQL", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        });
         jPanel3.add(btnReload);
 
         jPanel1.add(jPanel3);
@@ -220,6 +250,46 @@ public class formDanhMucThuoc extends JPanel {
         
         loadDataTable();
     }
+
+    private void search() {
+        String keyword = normalize(txtSearch.getText().trim());
+        int searchIndex = cboxSearch.getSelectedIndex();
+
+        try {
+            tableModel.setRowCount(0);
+            ArrayList<DanhMucThuoc> dsDMT = dmtDAO.getDsDanhMucThuoc();
+
+            for (DanhMucThuoc dmt : dsDMT) {
+                String maDanhMuc = dmt.getMaDanhMuc();
+                String tenDanhMuc = dmt.getTenDanhMuc();
+
+                if (keyword.isEmpty()
+                        || (searchIndex == 0 && (containsKeyword(maDanhMuc, keyword) || containsKeyword(tenDanhMuc, keyword)))
+                        || (searchIndex == 1 && containsKeyword(maDanhMuc, keyword))
+                        || (searchIndex == 2 && containsKeyword(tenDanhMuc, keyword))) {
+                    tableModel.addRow(new Object[] { maDanhMuc, tenDanhMuc });
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Loi khi tim kiem danh muc thuoc!", "Loi SQL", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
+    private boolean containsKeyword(String value, String keyword) {
+        return normalize(value).contains(keyword);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .replace('đ', 'd')
+                .replace('Đ', 'D');
+        return normalized.toLowerCase(Locale.ROOT);
+    }
     
     private void capNhatDanhMucThuoc() {
     	if (!choPhepSuaXoa) {
@@ -242,6 +312,7 @@ public class formDanhMucThuoc extends JPanel {
 	}
 
 	private void loadDataTable() throws SQLException {
+        tableModel.setRowCount(0);
     	ArrayList<DanhMucThuoc> dsDMT = dmtDAO.getDsDanhMucThuoc();
     	for (DanhMucThuoc dmt : dsDMT) {
     		tableModel.addRow(new Object[] {dmt.getMaDanhMuc(), dmt.getTenDanhMuc()});
@@ -255,7 +326,6 @@ public class formDanhMucThuoc extends JPanel {
     }
 
 	public void reloadTable() throws SQLException {
-		tableModel.setRowCount(0);
 		loadDataTable();
 		
 	}

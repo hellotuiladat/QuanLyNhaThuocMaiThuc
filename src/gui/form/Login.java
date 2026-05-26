@@ -8,6 +8,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import dao.TaiKhoanDAO;
 import entity.TaiKhoan;
+import utils.TableUtils;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -27,6 +28,7 @@ public class Login extends JFrame implements ActionListener
     
     public Login() 
     {
+        TableUtils.installGlobalTableLock();
         initComponents();
         dsTK = new TaiKhoanDAO();
     }
@@ -372,6 +374,7 @@ public class Login extends JFrame implements ActionListener
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
+            TableUtils.installGlobalTableLock();
             
             // Custom UI properties
             UIManager.put("Button.arc", 10);

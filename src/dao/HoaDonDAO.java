@@ -18,6 +18,11 @@ import entity.PhieuDatThuoc;
 import entity.Thue;
 
 public class HoaDonDAO {
+    private static final String DOANH_THU_SAU_THUE_KM =
+            "(cthd.soLuong * cthd.donGia "
+            + "* (1 - ISNULL(km.phanTramGiamGia, 0) / 100.0) "
+            + "* (1 + ISNULL(thue.phanTramThue, 0) / 100.0))";
+
     public static class HoaDonHienThi {
         private final String maHD;
         private final Date ngayLap;
@@ -337,6 +342,23 @@ public class HoaDonDAO {
                 if (rs.next()) {
                     return rs.getDouble("tongTien");
                 }
+            }
+        }
+        return 0;
+    }
+
+    public double getDoanhThuHomNay() throws SQLException {
+        String sql = "SELECT ISNULL(SUM(" + DOANH_THU_SAU_THUE_KM + "), 0) AS doanhThu "
+                + "FROM HoaDon hd "
+                + "INNER JOIN ChiTietHoaDon cthd ON hd.maHD = cthd.maHD "
+                + "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM "
+                + "LEFT JOIN Thue thue ON hd.maThue = thue.maThue "
+                + "WHERE CAST(hd.ngayLap AS DATE) = CAST(GETDATE() AS DATE)";
+        try (Connection con = getSafeConnection();
+                Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getDouble("doanhThu");
             }
         }
         return 0;

@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import ConnectDB.DatabaseConnection;
@@ -218,5 +219,53 @@ public class ThuocDAO {
             }
         }
         return false;
+    }
+
+    public ArrayList<Thuoc> getThuocSapHetHang(int nguongTon, int gioiHan) throws SQLException {
+        ArrayList<Thuoc> ketQua = new ArrayList<>();
+        String sql = "SELECT TOP " + gioiHan + " v.*, dm.tenDanhMuc "
+                + "FROM vw_TonKhoThuoc v "
+                + "LEFT JOIN DanhMucThuoc dm ON v.maDanhMuc = dm.maDanhMuc "
+                + "WHERE v.soLuongTon > 0 AND v.soLuongTon <= ? "
+                + "ORDER BY v.soLuongTon ASC, v.hanSuDungGanNhat ASC";
+        try (Connection con = getSafeConnection();
+                PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, nguongTon);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ketQua.add(mapThuoc(rs));
+                }
+            }
+        }
+        return ketQua;
+    }
+
+    public ArrayList<Thuoc> getThuocSapHetHan(int soNgay, int gioiHan) throws SQLException {
+        ArrayList<Thuoc> ketQua = new ArrayList<>();
+        LocalDate homNay = LocalDate.now();
+        LocalDate denNgay = homNay.plusDays(soNgay);
+        String sql = "SELECT TOP " + gioiHan + " t.maThuoc, t.tenThuoc, t.donViTinh, t.giaBan, t.moTa, t.maDanhMuc, "
+                + "t.hinhAnh, t.thanhPhan, t.xuatXu, dm.tenDanhMuc, "
+                + "SUM(lt.soLuongConLai) AS soLuongTon, MIN(lt.hanSuDung) AS hanSuDungGanNhat "
+                + "FROM Thuoc t "
+                + "JOIN LoThuoc lt ON t.maThuoc = lt.maThuoc "
+                + "LEFT JOIN DanhMucThuoc dm ON t.maDanhMuc = dm.maDanhMuc "
+                + "WHERE lt.soLuongConLai > 0 "
+                + "AND lt.hanSuDung >= ? AND lt.hanSuDung <= ? "
+                + "AND lt.trangThai = N'Còn hàng' "
+                + "GROUP BY t.maThuoc, t.tenThuoc, t.donViTinh, t.giaBan, t.moTa, t.maDanhMuc, "
+                + "t.hinhAnh, t.thanhPhan, t.xuatXu, dm.tenDanhMuc "
+                + "ORDER BY MIN(lt.hanSuDung) ASC, SUM(lt.soLuongConLai) ASC";
+        try (Connection con = getSafeConnection();
+                PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setDate(1, Date.valueOf(homNay));
+            stmt.setDate(2, Date.valueOf(denNgay));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ketQua.add(mapThuoc(rs));
+                }
+            }
+        }
+        return ketQua;
     }
 }

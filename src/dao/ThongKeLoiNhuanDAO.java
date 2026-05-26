@@ -193,6 +193,54 @@ public class ThongKeLoiNhuanDAO {
         
         return ketQua;
     }
+
+    /**
+     * Sản phẩm bán chậm
+     */
+    public ArrayList<TopSanPham> thongKeSanPhamBanCham(LocalDate tuNgay, LocalDate denNgay, int topN) throws SQLException {
+        ArrayList<TopSanPham> ketQua = new ArrayList<>();
+        
+        String sql = "SELECT TOP " + topN + " " +
+                    "t.maThuoc, " +
+                    "t.tenThuoc, " +
+                    "SUM(cthd.soLuong) as soLuongBan, " +
+                    "SUM(" + DOANH_THU_SAU_THUE_KM + ") as doanhThu " +
+                    "FROM ChiTietHoaDon cthd " +
+                    "INNER JOIN HoaDon hd ON cthd.maHD = hd.maHD " +
+                    "INNER JOIN Thuoc t ON cthd.maThuoc = t.maThuoc " +
+                    "LEFT JOIN KhuyenMai km ON hd.maKM = km.maKM " +
+                    "LEFT JOIN Thue thue ON hd.maThue = thue.maThue " +
+                    "WHERE CAST(hd.ngayLap AS DATE) BETWEEN ? AND ? " +
+                    "GROUP BY t.maThuoc, t.tenThuoc " +
+                    "ORDER BY soLuongBan ASC, doanhThu ASC";
+        
+        Connection con = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            con = getSafeConnection();
+            stmt = con.prepareStatement(sql);
+            stmt.setDate(1, java.sql.Date.valueOf(tuNgay));
+            stmt.setDate(2, java.sql.Date.valueOf(denNgay));
+            rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                String maThuoc = rs.getString("maThuoc");
+                String tenThuoc = rs.getString("tenThuoc");
+                int soLuongBan = rs.getInt("soLuongBan");
+                double doanhThu = rs.getDouble("doanhThu");
+                
+                TopSanPham sp = new TopSanPham(maThuoc, tenThuoc, soLuongBan, doanhThu);
+                ketQua.add(sp);
+            }
+        } finally {
+            if (rs != null) try { rs.close(); } catch (SQLException e) { }
+            if (stmt != null) try { stmt.close(); } catch (SQLException e) { }
+        }
+        
+        return ketQua;
+    }
     
     /**
      * Thống kê theo khách hàng
