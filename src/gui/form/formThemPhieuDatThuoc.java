@@ -94,6 +94,8 @@ public class formThemPhieuDatThuoc extends JPanel {
     
     private String currentMaThuoc = "";
     private double tongTien = 0;
+    private Thue thueApDung;
+    private KhuyenMai khuyenMaiApDung;
     private final Map<String, Date> hanSuDungMap = new HashMap<>();
     private boolean daCanhBaoKyTuTimKiem = false;
     private TaiKhoan taiKhoan;
@@ -935,20 +937,46 @@ public class formThemPhieuDatThuoc extends JPanel {
     }
 
     private void calculateTotal() {
-        tongTien = 0;
+        double tamTinh = 0;
         for (ChiTietPhieuDatThuoc item : dsChiTietPhieuDatThuoc) {
-            tongTien += item.getThanhTien();
+            tamTinh += item.getThanhTien();
         }
-        double phanTramThue = 0;
+        Date ngayTinh = new Date();
+        thueApDung = layThueApDung();
+        khuyenMaiApDung = layKhuyenMaiApDung(ngayTinh);
+
+        double phanTramGiam = khuyenMaiApDung != null ? khuyenMaiApDung.getPhanTramGiamGia() : 0;
+        double tienGiam = tamTinh * phanTramGiam / 100;
+        double tienSauGiam = tamTinh - tienGiam;
+        double phanTramThue = thueApDung != null ? thueApDung.getPhanTramThue() : 0;
+        tongTien = tienSauGiam + tienSauGiam * phanTramThue / 100;
+        txtTongTien.setText(String.format("%,.0f", tongTien));
+    }
+
+    private Thue layThueApDung() {
         try {
-            for (Thue thue : thueDAO.getDsThue()) {
-                phanTramThue += thue.getPhanTramThue();
-            }
+            ArrayList<Thue> dsThue = thueDAO.getDsThue();
+            return dsThue != null && !dsThue.isEmpty() ? dsThue.get(0) : null;
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-        tongTien = tongTien + tongTien * phanTramThue / 100;
-        txtTongTien.setText(String.format("%,.0f", tongTien));
+    }
+
+    private KhuyenMai layKhuyenMaiApDung(Date ngayTinh) {
+        try {
+            KhuyenMai ketQua = null;
+            for (KhuyenMai km : khuyenMaiDAO.getDsKhuyenMai()) {
+                if (isPromotionActive(ngayTinh, km)
+                        && (ketQua == null || km.getPhanTramGiamGia() > ketQua.getPhanTramGiamGia())) {
+                    ketQua = km;
+                }
+            }
+            return ketQua;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void btnDeleteCartItemActionPerformed(ActionEvent evt) {
@@ -983,7 +1011,9 @@ public class formThemPhieuDatThuoc extends JPanel {
         	// Tạo mã phiếu đặt thuốc tự động tại thời điểm đặt thuốc
         	generateMaPhieuDatThuoc();
         	String maPhieuDat = txtMaPhieuDat.getText();
-        	java.sql.Date ngayDat = new java.sql.Date(System.currentTimeMillis());
+        	Date ngayDat = new Date();
+            thueApDung = layThueApDung();
+            khuyenMaiApDung = layKhuyenMaiApDung(ngayDat);
         	String sdtKhachHang = txtSdtKH.getText().trim();
         	if (sdtKhachHang.isBlank()) {
         		JOptionPane.showMessageDialog(this, "Số điện thoại khách hàng không được để trống!");
@@ -1015,7 +1045,8 @@ public class formThemPhieuDatThuoc extends JPanel {
             NhanVien nhanVien = taiKhoan != null && taiKhoan.getNhanVien() != null
                     ? new NhanVien(taiKhoan.getNhanVien().getMaNV())
                     : null;
-        	PhieuDatThuoc pdt = new PhieuDatThuoc(maPhieuDat, ngayDat, khachHang, nhanVien, diaChi, hinhThucThanhToan, trangThai);
+        	PhieuDatThuoc pdt = new PhieuDatThuoc(maPhieuDat, ngayDat, khachHang, nhanVien,
+                    thueApDung, khuyenMaiApDung, diaChi, hinhThucThanhToan, trangThai);
     		for (ChiTietPhieuDatThuoc ctpdt : dsChiTietPhieuDatThuoc) {
     			ctpdt.getPhieuDatThuoc().setMaPhieuDat(maPhieuDat);
     		}
@@ -1054,6 +1085,8 @@ public class formThemPhieuDatThuoc extends JPanel {
         cboHinhThucThanhToan.setSelectedIndex(0);
         txtTongTien.setText("");
         tongTien = 0;
+        thueApDung = null;
+        khuyenMaiApDung = null;
         
 
         try { loadDataThuoc(); } catch (SQLException e) { e.printStackTrace(); }

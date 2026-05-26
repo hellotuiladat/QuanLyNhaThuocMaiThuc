@@ -85,7 +85,7 @@ CREATE TABLE PhieuNhapHang (
     maPhieuNhap NVARCHAR(20) PRIMARY KEY,
     maNV NVARCHAR(20) NOT NULL,
     maNCC NVARCHAR(20) NOT NULL,
-    ngayNhap DATE NOT NULL,
+    ngayNhap DATETIME NOT NULL,
     FOREIGN KEY (maNV) REFERENCES NhanVien(maNV),
     FOREIGN KEY (maNCC) REFERENCES NhaCungCap(maNCC)
 );
@@ -142,14 +142,18 @@ GO
 
 CREATE TABLE PhieuDatThuoc (
     maPhieuDat NVARCHAR(20) PRIMARY KEY,
-    ngayDat DATE NOT NULL,
+    ngayDat DATETIME NOT NULL,
     maKH NVARCHAR(20) NOT NULL,
     maNV NVARCHAR(20),
+    maThue NVARCHAR(20),
+    maKM NVARCHAR(20),
     diaChi NVARCHAR(200) NOT NULL,
     hinhThucThanhToan NVARCHAR(50) CHECK (hinhThucThanhToan IN (N'Thanh toán online', N'Tại chỗ')),
     trangThai NVARCHAR(20) CHECK (trangThai IN (N'Đã hoàn thành', N'Chưa hoàn thành')),
     FOREIGN KEY (maKH) REFERENCES KhachHang(maKH),
-    FOREIGN KEY (maNV) REFERENCES NhanVien(maNV)
+    FOREIGN KEY (maNV) REFERENCES NhanVien(maNV),
+    FOREIGN KEY (maThue) REFERENCES Thue(maThue),
+    FOREIGN KEY (maKM) REFERENCES KhuyenMai(maKM)
 );
 
 CREATE TABLE ChiTietPhieuDatThuoc (
@@ -164,7 +168,7 @@ CREATE TABLE ChiTietPhieuDatThuoc (
 
 CREATE TABLE HoaDon (
     maHD NVARCHAR(20) PRIMARY KEY,
-    ngayLap DATE NOT NULL,
+    ngayLap DATETIME NOT NULL,
     maThue NVARCHAR(20),
     maNV NVARCHAR(20),
     maKH NVARCHAR(20),

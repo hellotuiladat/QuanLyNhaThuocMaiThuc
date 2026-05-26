@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import ConnectDB.DatabaseConnection;
@@ -28,6 +29,20 @@ public class PhieuNhapThuocDAO {
         return conn;
     }
 
+    private void damBaoCotNgayNhapCoGio(Connection con) throws SQLException {
+        String checkSql = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_NAME = 'PhieuNhapHang' AND COLUMN_NAME = 'ngayNhap'";
+        try (Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(checkSql)) {
+            if (rs.next() && !"date".equalsIgnoreCase(rs.getString("DATA_TYPE"))) {
+                return;
+            }
+        }
+        try (Statement stmt = con.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE PhieuNhapHang ALTER COLUMN ngayNhap DATETIME NOT NULL");
+        }
+    }
+
     public String generateMaPhieuNhap() {
         String maPNH = "PN00001";
         String sql = "SELECT dbo.fn_GenerateMaPhieuNhap() AS MaPhieuNhapMoi";
@@ -46,15 +61,17 @@ public class PhieuNhapThuocDAO {
     public ArrayList<PhieuNhapThuoc> getDSPhieuNhapThuoc() throws SQLException {
         ArrayList<PhieuNhapThuoc> temp = new ArrayList<>();
         String sql = "SELECT * FROM PhieuNhapHang ORDER BY maPhieuNhap DESC";
-        try (Connection con = getSafeConnection();
-                Statement stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                temp.add(new PhieuNhapThuoc(
-                        rs.getString("maPhieuNhap"),
-                        new NhanVien(rs.getString("maNV")),
-                        new NhaCungCap(rs.getString("maNCC")),
-                        rs.getDate("ngayNhap")));
+        try (Connection con = getSafeConnection()) {
+            damBaoCotNgayNhapCoGio(con);
+            try (Statement stmt = con.createStatement();
+                    ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    temp.add(new PhieuNhapThuoc(
+                            rs.getString("maPhieuNhap"),
+                            new NhanVien(rs.getString("maNV")),
+                            new NhaCungCap(rs.getString("maNCC")),
+                            rs.getTimestamp("ngayNhap")));
+                }
             }
         }
         return temp;
@@ -94,6 +111,7 @@ public class PhieuNhapThuocDAO {
         String sqlCT = "INSERT INTO ChiTietPhieuNhap(maPhieuNhap, maLo, soLuong, donGia) VALUES (?,?,?,?)";
 
         try (Connection con = getSafeConnection()) {
+            damBaoCotNgayNhapCoGio(con);
             boolean oldAutoCommit = con.getAutoCommit();
             con.setAutoCommit(false);
             try {
@@ -101,7 +119,7 @@ public class PhieuNhapThuocDAO {
                     stmt.setString(1, pnh.getMaPhieuNhap());
                     stmt.setString(2, pnh.getNhanVien().getMaNV());
                     stmt.setString(3, pnh.getNhaCungCap().getMaNCC());
-                    stmt.setDate(4, new Date(pnh.getNgayNhap().getTime()));
+                    stmt.setTimestamp(4, new Timestamp(pnh.getNgayNhap().getTime()));
                     if (stmt.executeUpdate() == 0) {
                         con.rollback();
                         return false;
@@ -150,6 +168,7 @@ public class PhieuNhapThuocDAO {
         String sqlCT = "INSERT INTO ChiTietPhieuNhap(maPhieuNhap, maLo, soLuong, donGia) VALUES (?,?,?,?)";
 
         try (Connection con = getSafeConnection()) {
+            damBaoCotNgayNhapCoGio(con);
             boolean oldAutoCommit = con.getAutoCommit();
             con.setAutoCommit(false);
             try {
@@ -160,7 +179,7 @@ public class PhieuNhapThuocDAO {
                 try (PreparedStatement stmt = con.prepareStatement(sqlUpdatePhieu)) {
                     stmt.setString(1, pnh.getNhanVien().getMaNV());
                     stmt.setString(2, pnh.getNhaCungCap().getMaNCC());
-                    stmt.setDate(3, new Date(pnh.getNgayNhap().getTime()));
+                    stmt.setTimestamp(3, new Timestamp(pnh.getNgayNhap().getTime()));
                     stmt.setString(4, pnh.getMaPhieuNhap());
                     stmt.executeUpdate();
                 }
@@ -245,13 +264,15 @@ public class PhieuNhapThuocDAO {
 
     public PhieuNhapThuoc getPhieuNhapTheoMa(String maPhieuNhap) throws SQLException {
         String sql = "SELECT * FROM PhieuNhapHang WHERE maPhieuNhap = ?";
-        try (Connection con = getSafeConnection();
-                PreparedStatement stmt = con.prepareStatement(sql)) {
-            stmt.setString(1, maPhieuNhap);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new PhieuNhapThuoc(maPhieuNhap, new NhanVien(rs.getString("maNV")),
-                            new NhaCungCap(rs.getString("maNCC")), rs.getDate("ngayNhap"));
+        try (Connection con = getSafeConnection()) {
+            damBaoCotNgayNhapCoGio(con);
+            try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                stmt.setString(1, maPhieuNhap);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return new PhieuNhapThuoc(maPhieuNhap, new NhanVien(rs.getString("maNV")),
+                                new NhaCungCap(rs.getString("maNCC")), rs.getTimestamp("ngayNhap"));
+                    }
                 }
             }
         }
@@ -289,27 +310,29 @@ public class PhieuNhapThuocDAO {
         }
         if (ngayTu != null) {
             sql.append(" AND ngayNhap >= ?");
-            params.add(new Date(ngayTu.getTime()));
+            params.add(new Timestamp(ngayTu.getTime()));
         }
         if (ngayDen != null) {
             sql.append(" AND ngayNhap <= ?");
-            params.add(new Date(ngayDen.getTime()));
+            params.add(new Timestamp(ngayDen.getTime()));
         }
 
         sql.append(" ORDER BY maPhieuNhap DESC");
 
-        try (Connection con = getSafeConnection();
-                PreparedStatement stmt = con.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                stmt.setObject(i + 1, params.get(i));
-            }
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    ketQua.add(new PhieuNhapThuoc(
-                            rs.getString("maPhieuNhap"),
-                            new NhanVien(rs.getString("maNV")),
-                            new NhaCungCap(rs.getString("maNCC")),
-                            rs.getDate("ngayNhap")));
+        try (Connection con = getSafeConnection()) {
+            damBaoCotNgayNhapCoGio(con);
+            try (PreparedStatement stmt = con.prepareStatement(sql.toString())) {
+                for (int i = 0; i < params.size(); i++) {
+                    stmt.setObject(i + 1, params.get(i));
+                }
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        ketQua.add(new PhieuNhapThuoc(
+                                rs.getString("maPhieuNhap"),
+                                new NhanVien(rs.getString("maNV")),
+                                new NhaCungCap(rs.getString("maNCC")),
+                                rs.getTimestamp("ngayNhap")));
+                    }
                 }
             }
         }

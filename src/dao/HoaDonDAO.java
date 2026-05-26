@@ -1,12 +1,13 @@
 package dao;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 
 import ConnectDB.DatabaseConnection;
 import entity.ChiTietHoaDon;
@@ -94,6 +95,20 @@ public class HoaDonDAO {
         }
         return conn;
     }
+
+    private void damBaoCotNgayLapCoGio(Connection con) throws SQLException {
+        String checkSql = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_NAME = 'HoaDon' AND COLUMN_NAME = 'ngayLap'";
+        try (Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(checkSql)) {
+            if (rs.next() && !"date".equalsIgnoreCase(rs.getString("DATA_TYPE"))) {
+                return;
+            }
+        }
+        try (Statement stmt = con.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE HoaDon ALTER COLUMN ngayLap DATETIME NOT NULL");
+        }
+    }
     
     /**
      * Lấy tất cả hóa đơn
@@ -102,11 +117,12 @@ public class HoaDonDAO {
         ArrayList<HoaDon> temp = new ArrayList<HoaDon>();
         String sql = "SELECT * FROM HoaDon ORDER BY CAST(SUBSTRING(maHD, 3, 5) AS INT) DESC";
         try (Connection con = getSafeConnection()) {
+            damBaoCotNgayLapCoGio(con);
             Statement stmt = con.createStatement();
             try (ResultSet rs = stmt.executeQuery(sql)) {
                 while (rs.next()) {
                     String maHD = rs.getString("maHD");
-                    Date ngayLap = rs.getDate("ngayLap");
+                    Date ngayLap = rs.getTimestamp("ngayLap");
                     String maThue = rs.getString("maThue");
                     String maNhanVien = rs.getString("maNV");
                     String maKH = rs.getString("maKH");
@@ -134,20 +150,22 @@ public class HoaDonDAO {
                 + "LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV "
                 + "LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH "
                 + "ORDER BY CAST(SUBSTRING(hd.maHD, 3, 5) AS INT) DESC";
-        try (Connection con = getSafeConnection();
-                Statement stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                temp.add(new HoaDonHienThi(
-                        rs.getString("maHD"),
-                        rs.getDate("ngayLap"),
-                        rs.getString("maNV"),
-                        rs.getString("tenNV"),
-                        rs.getString("maKH"),
-                        rs.getString("tenKH"),
-                        rs.getString("maThue"),
-                        rs.getString("maKM"),
-                        rs.getString("maPhieuDat")));
+        try (Connection con = getSafeConnection()) {
+            damBaoCotNgayLapCoGio(con);
+            try (Statement stmt = con.createStatement();
+                    ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    temp.add(new HoaDonHienThi(
+                            rs.getString("maHD"),
+                            rs.getTimestamp("ngayLap"),
+                            rs.getString("maNV"),
+                            rs.getString("tenNV"),
+                            rs.getString("maKH"),
+                            rs.getString("tenKH"),
+                            rs.getString("maThue"),
+                            rs.getString("maKM"),
+                            rs.getString("maPhieuDat")));
+                }
             }
         }
         return temp;
@@ -160,12 +178,13 @@ public class HoaDonDAO {
         String sql = "SELECT * FROM HoaDon WHERE maHD = ?";
         
         try (Connection con = getSafeConnection()) {
+            damBaoCotNgayLapCoGio(con);
             PreparedStatement stmt = con.prepareStatement(sql);
             stmt.setString(1, maHD);
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    Date ngayLap = rs.getDate("ngayLap");
+                    Date ngayLap = rs.getTimestamp("ngayLap");
                     String maThue = rs.getString("maThue");
                     String maNhanVien = rs.getString("maNV");
                     String maKH = rs.getString("maKH");
@@ -207,6 +226,7 @@ public class HoaDonDAO {
      */
     public boolean themHoaDon(HoaDon hd) throws SQLException {
         try (Connection con = getSafeConnection()) {
+            damBaoCotNgayLapCoGio(con);
             return themHoaDon(con, hd);
         }
     }
@@ -232,6 +252,7 @@ public class HoaDonDAO {
         }
 
         try (Connection con = getSafeConnection()) {
+            damBaoCotNgayLapCoGio(con);
             boolean oldAutoCommit = con.getAutoCommit();
             con.setAutoCommit(false);
             try {
@@ -277,7 +298,7 @@ public class HoaDonDAO {
                 + " VALUES(?,?,?,?,?,?,?)";
         try (PreparedStatement stmt = con.prepareStatement(sql)) {
             stmt.setString(1, hd.getMaHD());
-            stmt.setDate(2, new java.sql.Date(hd.getNgayLap().getTime()));
+            stmt.setTimestamp(2, new Timestamp(hd.getNgayLap().getTime()));
             if (hd.getThue() != null && hd.getThue().getMaThue() != null) {
                 stmt.setString(3, hd.getThue().getMaThue());
             } else {
@@ -386,6 +407,7 @@ public class HoaDonDAO {
         sql.append(" ORDER BY CAST(SUBSTRING(maHD, 3, 5) AS INT) DESC");
         
         try (Connection con = getSafeConnection()) {
+            damBaoCotNgayLapCoGio(con);
             PreparedStatement stmt = con.prepareStatement(sql.toString());
             int paramIndex = 1;
             
@@ -397,17 +419,17 @@ public class HoaDonDAO {
             }
             
             if (tuNgay != null) {
-                stmt.setDate(paramIndex++, tuNgay);
+                stmt.setTimestamp(paramIndex++, new Timestamp(tuNgay.getTime()));
             }
             
             if (denNgay != null) {
-                stmt.setDate(paramIndex++, denNgay);
+                stmt.setTimestamp(paramIndex++, new Timestamp(denNgay.getTime()));
             }
             
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     String maHD = rs.getString("maHD");
-                    Date ngayLap = rs.getDate("ngayLap");
+                    Date ngayLap = rs.getTimestamp("ngayLap");
                     String maThue = rs.getString("maThue");
                     String maNhanVien = rs.getString("maNV");
                     String maKH = rs.getString("maKH");

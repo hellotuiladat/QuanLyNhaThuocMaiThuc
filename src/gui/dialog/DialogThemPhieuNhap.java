@@ -13,6 +13,7 @@ import java.awt.Insets;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.swing.BorderFactory;
@@ -432,7 +433,7 @@ public class DialogThemPhieuNhap extends JDialog {
             String maNV = cboNhanVien.getSelectedItem().toString().split(" - ")[0];
             String maNCC = cboNhaCungCap.getSelectedItem().toString().split(" - ")[0];
             PhieuNhapThuoc pnh = new PhieuNhapThuoc(maPN, nvDAO.getNhanVienTheoMa(maNV),
-                    nccDAO.getNhaCungCapTheoMa(maNCC), dcNgayNhap.getDate());
+                    nccDAO.getNhaCungCapTheoMa(maNCC), ganGioHienTai(dcNgayNhap.getDate()));
             for (ChiTietNhapThuoc ct : listChiTiet) {
                 ct.setMaPhieuNhap(maPN);
             }
@@ -448,6 +449,18 @@ public class DialogThemPhieuNhap extends JDialog {
         } catch (Exception e) {
             showError(e);
         }
+    }
+
+    private Date ganGioHienTai(Date date) {
+        Calendar selected = Calendar.getInstance();
+        selected.setTime(date);
+
+        Calendar now = Calendar.getInstance();
+        selected.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
+        selected.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
+        selected.set(Calendar.SECOND, now.get(Calendar.SECOND));
+        selected.set(Calendar.MILLISECOND, now.get(Calendar.MILLISECOND));
+        return selected.getTime();
     }
 
     private String format(Date date) {

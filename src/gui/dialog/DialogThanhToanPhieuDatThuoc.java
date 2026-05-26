@@ -65,6 +65,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
     private String maPhieuDatGlobal; 
     private KhachHang khachHangThanhToan;
     private Thue thueApDung;
+    private PhieuDatThuoc phieuDatThanhToan;
     private ArrayList<ChiTietPhieuDatThuoc> dsPhieuDatThuocThanhToan;
     private Runnable onThanhToanThanhCong;
     
@@ -83,6 +84,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         
         this.nv = resolveNhanVien(nv);
         this.maPhieuDatGlobal = maPhieuDat;
+        this.phieuDatThanhToan = pdtDAO.getPhieuDatThuocQuaMaPhieuDat(maPhieuDat);
         this.dsPhieuDatThuocThanhToan = dsPhieuDatThuoc;
         initComponents(maPhieuDat, ngayDat, maKH, dsPhieuDatThuoc, tongTien);
     }
@@ -161,8 +163,9 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         lblNgayDatLabel.setFont(labelFont);
         row1.add(lblNgayDatLabel);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm: ss");
-        lblNgayLap = new JLabel(sdf.format(new Date()));
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date ngayLapPhieu = ngayDat != null ? ngayDat : new Date();
+        lblNgayLap = new JLabel(sdf.format(ngayLapPhieu));
         lblNgayLap.setFont(valueFont);
         row1.add(lblNgayLap);
 
@@ -309,26 +312,10 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         // ===== GIẢM GIÁ =====
         double giamGia = 0;
         double phanTramGiamGia = 0;
-
-        try {
-            ArrayList<KhuyenMai> dsKhuyenMai = khuyenMaiDAO.getDsKhuyenMai();
-
-            for (KhuyenMai km : dsKhuyenMai) {
-                if (isPromotionActive(ngayDat, km)) {
-
-                    if (km.getPhanTramGiamGia() > phanTramGiamGia) {
-                        phanTramGiamGia = km.getPhanTramGiamGia();
-                        this.khuyenMaiApDung = km;
-                    }
-                }
-            }
-
-            if (phanTramGiamGia > 0) {
-                giamGia = tongTienTruocKhiKhuyenMai * phanTramGiamGia / 100;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        this.khuyenMaiApDung = layKhuyenMaiDaChot();
+        if (this.khuyenMaiApDung != null) {
+            phanTramGiamGia = this.khuyenMaiApDung.getPhanTramGiamGia();
+            giamGia = tongTienTruocKhiKhuyenMai * phanTramGiamGia / 100;
         }
         
         String labelGiamGia = phanTramGiamGia > 0 ? "Giảm giá (" + " -" + String.format("%.0f%%", phanTramGiamGia) + "):" : "Giảm giá:";
@@ -351,17 +338,10 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         double phanTramThue = 0;
         String tenThue = "Thuế (0%)";
 
-        try {
-            ArrayList<Thue> dsThue = thueDAO.getDsThue();
-            if (dsThue != null && ! dsThue.isEmpty()) {
-                Thue thue = dsThue.get(0);
-                thueApDung = thue;
-
-                phanTramThue = thue.getPhanTramThue();
-                tenThue = thue.getTenThue() + " (" + String.format("%.0f%%", phanTramThue) + ")";
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        thueApDung = layThueDaChot();
+        if (thueApDung != null) {
+            phanTramThue = thueApDung.getPhanTramThue();
+            tenThue = thueApDung.getTenThue() + " (" + String.format("%.0f%%", phanTramThue) + ")";
         }
         double tienSauGiamGia = tongTienTruocKhiKhuyenMai - giamGia;
         tienThue = tienSauGiamGia * phanTramThue / 100;
@@ -570,6 +550,34 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
     private void thongBaoThanhToanThanhCong() {
         if (onThanhToanThanhCong != null) {
             onThanhToanThanhCong.run();
+        }
+    }
+
+    private Thue layThueDaChot() {
+        if (phieuDatThanhToan == null || phieuDatThanhToan.getThue() == null
+                || phieuDatThanhToan.getThue().getMaThue() == null
+                || phieuDatThanhToan.getThue().getMaThue().trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return thueDAO.getThueTheoMa(phieuDatThanhToan.getThue().getMaThue());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private KhuyenMai layKhuyenMaiDaChot() {
+        if (phieuDatThanhToan == null || phieuDatThanhToan.getKhuyenMai() == null
+                || phieuDatThanhToan.getKhuyenMai().getMaKM() == null
+                || phieuDatThanhToan.getKhuyenMai().getMaKM().trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return khuyenMaiDAO.getKhuyenMaiTheoMa(phieuDatThanhToan.getKhuyenMai().getMaKM());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

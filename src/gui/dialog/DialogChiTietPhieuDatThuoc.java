@@ -337,8 +337,35 @@ public class DialogChiTietPhieuDatThuoc extends JDialog {
             }
             // Hiển thị tạm tính
             lblTongTien.setText(String.format("%,.0f VNĐ", tamTinh));
-            // Tính tổng cộng
-            double tongCong = tamTinh;
+
+            double tienGiamGia = 0;
+            if (phieuDatThuoc.getKhuyenMai() != null
+                    && phieuDatThuoc.getKhuyenMai().getMaKM() != null
+                    && !phieuDatThuoc.getKhuyenMai().getMaKM().trim().isEmpty()) {
+                KhuyenMai km = khuyenMaiDAO.getKhuyenMaiTheoMa(phieuDatThuoc.getKhuyenMai().getMaKM());
+                if (km != null) {
+                    tienGiamGia = tamTinh * km.getPhanTramGiamGia() / 100;
+                    lblKhuyenMai.setText(String.format("%.0f%% (-%,.0f VNĐ)", km.getPhanTramGiamGia(), tienGiamGia));
+                }
+            } else {
+                lblKhuyenMai.setText("0 VNĐ");
+            }
+
+            double tienSauGiam = tamTinh - tienGiamGia;
+            double tienThue = 0;
+            if (phieuDatThuoc.getThue() != null
+                    && phieuDatThuoc.getThue().getMaThue() != null
+                    && !phieuDatThuoc.getThue().getMaThue().trim().isEmpty()) {
+                Thue thue = thueDAO.getThueTheoMa(phieuDatThuoc.getThue().getMaThue());
+                if (thue != null) {
+                    tienThue = tienSauGiam * thue.getPhanTramThue() / 100;
+                    lblThue.setText(String.format("%.0f%% (+%,.0f VNĐ)", thue.getPhanTramThue(), tienThue));
+                }
+            } else {
+                lblThue.setText("0 VNĐ");
+            }
+
+            double tongCong = tienSauGiam + tienThue;
             lblThanhToan.setText(String.format("%,.0f VNĐ", tongCong));
             
         } catch (SQLException e) {

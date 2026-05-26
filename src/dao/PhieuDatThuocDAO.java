@@ -1,18 +1,20 @@
 package dao;
 
 import java.sql.Connection;
-import java.sql.Date; // Lưu ý: Dùng java.sql.Date cho JDBC
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import ConnectDB.DatabaseConnection;
 import entity.ChiTietPhieuDatThuoc; // Import thêm entity này
 import entity.KhachHang;
+import entity.KhuyenMai;
 import entity.NhanVien;
 import entity.PhieuDatThuoc;
+import entity.Thue;
 
 public class PhieuDatThuocDAO {
 
@@ -27,6 +29,41 @@ public class PhieuDatThuocDAO {
             }
         }
         return conn;
+    }
+
+    private void damBaoCotNgayDatCoGio(Connection con) throws SQLException {
+        String checkSql = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_NAME = 'PhieuDatThuoc' AND COLUMN_NAME = 'ngayDat'";
+        try (Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(checkSql)) {
+            if (rs.next() && !"date".equalsIgnoreCase(rs.getString("DATA_TYPE"))) {
+                return;
+            }
+        }
+        try (Statement stmt = con.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE PhieuDatThuoc ALTER COLUMN ngayDat DATETIME NOT NULL");
+        }
+    }
+
+    private void damBaoCotThanhToan(Connection con) throws SQLException {
+        damBaoCot(con, "maThue", "NVARCHAR(20) NULL");
+        damBaoCot(con, "maKM", "NVARCHAR(20) NULL");
+    }
+
+    private void damBaoCot(Connection con, String columnName, String definition) throws SQLException {
+        String checkSql = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_NAME = 'PhieuDatThuoc' AND COLUMN_NAME = ?";
+        try (PreparedStatement stmt = con.prepareStatement(checkSql)) {
+            stmt.setString(1, columnName);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return;
+                }
+            }
+        }
+        try (Statement stmt = con.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE PhieuDatThuoc ADD " + columnName + " " + definition);
+        }
     }
 
     public String generateMaPhieuDat() throws SQLException {
@@ -47,18 +84,25 @@ public class PhieuDatThuocDAO {
         String sql = "SELECT * FROM PhieuDatThuoc ORDER BY CAST(SUBSTRING(maPhieuDat, 4, 5) AS INT) DESC";
         try (Connection con = getSafeConnection()) {
             damBaoCotMaNhanVien(con);
+            damBaoCotNgayDatCoGio(con);
+            damBaoCotThanhToan(con);
             Statement stmt = con.createStatement();
             try (ResultSet rs = stmt.executeQuery(sql)) {
                 while (rs.next()) {
                     String maPhieuDat = rs.getString("maPhieuDat");
-                    Date ngayDat = rs.getDate("ngayDat");
+                    Timestamp ngayDat = rs.getTimestamp("ngayDat");
                     String maKH = rs.getString("maKH");
                     String diaChi = rs.getString("diaChi");
                     String hinhThucThanhToan = rs.getString("hinhThucThanhToan");
                     String trangThai = rs.getString("trangThai");
                     String maNV = rs.getString("maNV");
+                    String maThue = rs.getString("maThue");
+                    String maKM = rs.getString("maKM");
                     PhieuDatThuoc pdt = new PhieuDatThuoc(maPhieuDat, ngayDat, new KhachHang(maKH),
-                            maNV == null ? null : new NhanVien(maNV), diaChi, hinhThucThanhToan, trangThai);
+                            maNV == null ? null : new NhanVien(maNV),
+                            maThue == null ? null : new Thue(maThue),
+                            maKM == null ? null : new KhuyenMai(maKM),
+                            diaChi, hinhThucThanhToan, trangThai);
                     temp.add(pdt);
                 }
             }
@@ -70,19 +114,26 @@ public class PhieuDatThuocDAO {
         String sql = "SELECT * FROM PhieuDatThuoc WHERE maPhieuDat = ?";
         try (Connection con = getSafeConnection()) {
             damBaoCotMaNhanVien(con);
+            damBaoCotNgayDatCoGio(con);
+            damBaoCotThanhToan(con);
             PreparedStatement stmt = con.prepareStatement(sql);
             stmt.setString(1, maPhieuDat);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    Date ngayDat = rs.getDate("ngayDat");
+                    Timestamp ngayDat = rs.getTimestamp("ngayDat");
                     String maKH = rs.getString("maKH");
                     String diaChi = rs.getString("diaChi");
                     String hinhThucThanhToan = rs.getString("hinhThucThanhToan");
                     String trangThai = rs.getString("trangThai");
                     String maNV = rs.getString("maNV");
+                    String maThue = rs.getString("maThue");
+                    String maKM = rs.getString("maKM");
 
                     return new PhieuDatThuoc(maPhieuDat, ngayDat, new KhachHang(maKH),
-                            maNV == null ? null : new NhanVien(maNV), diaChi, hinhThucThanhToan, trangThai);
+                            maNV == null ? null : new NhanVien(maNV),
+                            maThue == null ? null : new Thue(maThue),
+                            maKM == null ? null : new KhuyenMai(maKM),
+                            diaChi, hinhThucThanhToan, trangThai);
                 }
             }
         }
@@ -122,6 +173,8 @@ public class PhieuDatThuocDAO {
     public boolean themPhieuDatThuoc(PhieuDatThuoc pdt) throws SQLException {
 	try (Connection con = getSafeConnection()) {
             damBaoCotMaNhanVien(con);
+            damBaoCotNgayDatCoGio(con);
+            damBaoCotThanhToan(con);
 		return themPhieuDatThuoc(con, pdt);
 	}
     }
@@ -134,6 +187,8 @@ public class PhieuDatThuocDAO {
 
         try (Connection con = getSafeConnection()) {
             damBaoCotMaNhanVien(con);
+            damBaoCotNgayDatCoGio(con);
+            damBaoCotThanhToan(con);
             boolean oldAutoCommit = con.getAutoCommit();
             con.setAutoCommit(false);
             try {
@@ -168,11 +223,13 @@ public class PhieuDatThuocDAO {
 
     private boolean themPhieuDatThuoc(Connection con, PhieuDatThuoc pdt) throws SQLException {
         damBaoCotMaNhanVien(con);
-    	String sql = "INSERT PhieuDatThuoc(maPhieuDat,ngayDat,maKH,maNV,diaChi,hinhThucThanhToan"
-    			+ ",trangThai) VALUES(?,?,?,?,?,?,?)";
+        damBaoCotNgayDatCoGio(con);
+        damBaoCotThanhToan(con);
+    	String sql = "INSERT PhieuDatThuoc(maPhieuDat,ngayDat,maKH,maNV,maThue,maKM,diaChi,hinhThucThanhToan"
+    			+ ",trangThai) VALUES(?,?,?,?,?,?,?,?,?)";
 		try (PreparedStatement stmt = con.prepareStatement(sql)) {
     		stmt.setString(1, pdt.getMaPhieuDat());
-    		stmt.setDate(2, new Date(pdt.getNgayDat().getTime()));
+    		stmt.setTimestamp(2, new Timestamp(pdt.getNgayDat().getTime()));
     		stmt.setString(3, pdt.getKhachHang().getMaKH());
             if (pdt.getNhanVien() != null && pdt.getNhanVien().getMaNV() != null
                     && !pdt.getNhanVien().getMaNV().trim().isEmpty()) {
@@ -180,9 +237,21 @@ public class PhieuDatThuocDAO {
             } else {
                 stmt.setNull(4, java.sql.Types.NVARCHAR);
             }
-    		stmt.setString(5, pdt.getDiaChi());
-    		stmt.setString(6, pdt.getHinhThucThanhToan());
-    		stmt.setString(7, pdt.getTrangThai());
+            if (pdt.getThue() != null && pdt.getThue().getMaThue() != null
+                    && !pdt.getThue().getMaThue().trim().isEmpty()) {
+                stmt.setString(5, pdt.getThue().getMaThue());
+            } else {
+                stmt.setNull(5, java.sql.Types.NVARCHAR);
+            }
+            if (pdt.getKhuyenMai() != null && pdt.getKhuyenMai().getMaKM() != null
+                    && !pdt.getKhuyenMai().getMaKM().trim().isEmpty()) {
+                stmt.setString(6, pdt.getKhuyenMai().getMaKM());
+            } else {
+                stmt.setNull(6, java.sql.Types.NVARCHAR);
+            }
+    		stmt.setString(7, pdt.getDiaChi());
+    		stmt.setString(8, pdt.getHinhThucThanhToan());
+    		stmt.setString(9, pdt.getTrangThai());
     		return stmt.executeUpdate() > 0;
     	}
     }
