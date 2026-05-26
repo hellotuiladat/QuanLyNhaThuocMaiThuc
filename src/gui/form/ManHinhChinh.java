@@ -675,6 +675,7 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 		JPanel panel = new JPanel(new BorderLayout(0, 10));
 		panel.setBackground(new Color(255, 255, 255, 235));
 		panel.setBorder(new EmptyBorder(18, 18, 18, 18));
+		Color contentBackground = Color.WHITE;
 
 		JLabel lblTitle = new JLabel(tieuDe);
 		lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -683,10 +684,13 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 
 		JTextArea textArea = new JTextArea();
 		textArea.setEditable(false);
-		textArea.setOpaque(false);
+		textArea.setFocusable(false);
+		textArea.setOpaque(true);
+		textArea.setBackground(contentBackground);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 		textArea.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+		textArea.setBorder(new EmptyBorder(6, 6, 6, 6));
 
 		if (dsThuoc.isEmpty()) {
 			textArea.setText("Không có dữ liệu.");
@@ -708,8 +712,10 @@ public class ManHinhChinh extends JFrame implements ActionListener{
 
 		JScrollPane scrollPane = new JScrollPane(textArea);
 		scrollPane.setBorder(null);
-		scrollPane.getViewport().setOpaque(false);
-		scrollPane.setOpaque(false);
+		scrollPane.setOpaque(true);
+		scrollPane.setBackground(contentBackground);
+		scrollPane.getViewport().setOpaque(true);
+		scrollPane.getViewport().setBackground(contentBackground);
 		panel.add(scrollPane, BorderLayout.CENTER);
 		return panel;
 	}
