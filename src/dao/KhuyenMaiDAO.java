@@ -38,12 +38,30 @@ public class KhuyenMaiDAO {
             stmt.executeUpdate("ALTER TABLE KhuyenMai ADD lapHangNam BIT DEFAULT 1 NOT NULL");
         }
     }
+
+    private void ensureDaXoaColumn(Connection con) throws SQLException {
+        String checkSql = "SELECT COL_LENGTH('dbo.KhuyenMai', 'daXoa')";
+        try (Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(checkSql)) {
+            if (rs.next() && rs.getObject(1) != null) {
+                return;
+            }
+        }
+        try (Statement stmt = con.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE KhuyenMai ADD daXoa BIT DEFAULT 0 NOT NULL");
+        }
+    }
+
+    private void ensureKhuyenMaiColumns(Connection con) throws SQLException {
+        ensureLapHangNamColumn(con);
+        ensureDaXoaColumn(con);
+    }
     
     public ArrayList<KhuyenMai> getDsKhuyenMai() throws SQLException {
     	ArrayList<KhuyenMai> temp = new ArrayList<>();
-    	String sql = "SELECT * FROM KhuyenMai";
+    	String sql = "SELECT * FROM KhuyenMai WHERE daXoa = 0";
     	try (Connection con = getSafeConnection()) {
-            ensureLapHangNamColumn(con);
+            ensureKhuyenMaiColumns(con);
     		Statement stmt = con.createStatement();
     		try (ResultSet rs = stmt.executeQuery(sql)) {
     			while (rs.next()) {
@@ -78,7 +96,7 @@ public class KhuyenMaiDAO {
     public boolean themKhuyenMai(KhuyenMai km) throws SQLException {
         String sql = "INSERT INTO KhuyenMai(maKM, tenKM, ngayBatDau, ngayKetThuc, phanTramGiamGia, lapHangNam) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection con = DatabaseConnection.getInstance().getConnection()) {
-            ensureLapHangNamColumn(con);
+            ensureKhuyenMaiColumns(con);
             try (PreparedStatement stmt = con.prepareStatement(sql)) {
 
                 stmt.setString(1, km.getMaKM());
@@ -97,7 +115,7 @@ public class KhuyenMaiDAO {
     public KhuyenMai getKhuyenMaiTheoMa(String maKM) throws SQLException {
         String sql = "SELECT * FROM KhuyenMai WHERE maKM = ?";
         try (Connection con = DatabaseConnection.getInstance().getConnection()) {
-            ensureLapHangNamColumn(con);
+            ensureKhuyenMaiColumns(con);
             try (PreparedStatement stmt = con.prepareStatement(sql)) {
                 stmt.setString(1, maKM);
                 ResultSet rs = stmt.executeQuery();
@@ -120,7 +138,7 @@ public class KhuyenMaiDAO {
     public boolean capNhatKhuyenMai(KhuyenMai km) throws SQLException {
         String sql = "UPDATE KhuyenMai SET tenKM = ?, ngayBatDau = ?, ngayKetThuc = ?, phanTramGiamGia = ?, lapHangNam = ? WHERE maKM = ?";
         try (Connection con = DatabaseConnection.getInstance().getConnection()) {
-            ensureLapHangNamColumn(con);
+            ensureKhuyenMaiColumns(con);
             try (PreparedStatement stmt = con.prepareStatement(sql)) {
 
                 stmt.setString(1, km.getTenKM());
@@ -137,11 +155,13 @@ public class KhuyenMaiDAO {
 
     // Xóa khuyến mãi theo mã
     public boolean xoaKhuyenMai(String maKM) throws SQLException {
-        String sql = "DELETE FROM KhuyenMai WHERE maKM = ?";
-        try (Connection con = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement stmt = con.prepareStatement(sql)) {
-            stmt.setString(1, maKM);
-            return stmt.executeUpdate() > 0;
+        String sql = "UPDATE KhuyenMai SET daXoa = 1 WHERE maKM = ?";
+        try (Connection con = DatabaseConnection.getInstance().getConnection()) {
+            ensureKhuyenMaiColumns(con);
+            try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                stmt.setString(1, maKM);
+                return stmt.executeUpdate() > 0;
+            }
         }
     }
 }

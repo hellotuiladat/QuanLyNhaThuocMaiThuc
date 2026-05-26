@@ -22,7 +22,8 @@ GO
 CREATE TABLE NhaCungCap (
     maNCC NVARCHAR(20) PRIMARY KEY,
     tenNCC NVARCHAR(100) NOT NULL,
-    soDienThoai NVARCHAR(15)
+    soDienThoai NVARCHAR(15),
+    daXoa BIT DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE NhanVien (
@@ -63,6 +64,7 @@ CREATE TABLE KhuyenMai (
     ngayKetThuc DATE NOT NULL,
     phanTramGiamGia DECIMAL(5,2) CHECK (phanTramGiamGia > 0 AND phanTramGiamGia <= 100),
     lapHangNam BIT DEFAULT 1 NOT NULL,
+    daXoa BIT DEFAULT 0 NOT NULL,
     CONSTRAINT CK_KhuyenMai_NgayKetThuc CHECK (ngayKetThuc >= ngayBatDau)
 );
 

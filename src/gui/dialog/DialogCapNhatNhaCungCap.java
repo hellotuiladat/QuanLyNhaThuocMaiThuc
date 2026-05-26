@@ -85,9 +85,13 @@ public class DialogCapNhatNhaCungCap extends JDialog {
         btnCapNhat = new JButton("CẬP NHẬT");
         btnHuy = new JButton("HỦY");
         btnCapNhat.setPreferredSize(new Dimension(140, 40));
+        btnCapNhat.setFont(new Font("Roboto", Font.BOLD, 14));
         btnCapNhat.setBackground(new Color(0, 0, 205));
         btnCapNhat.setForeground(Color.WHITE);
+        btnCapNhat.setFocusPainted(false);
         btnHuy.setPreferredSize(new Dimension(140, 40));
+        btnHuy.setFont(new Font("Roboto", Font.BOLD, 14));
+        btnHuy.setFocusPainted(false);
         buttonPanel.add(btnCapNhat);
         buttonPanel.add(btnHuy);
         add(buttonPanel, BorderLayout.SOUTH);

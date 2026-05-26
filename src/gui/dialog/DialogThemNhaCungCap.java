@@ -80,8 +80,13 @@ public class DialogThemNhaCungCap extends JDialog {
         btnXacNhan = new JButton("XÁC NHẬN");
         btnHuy = new JButton("HỦY");
         btnXacNhan.setPreferredSize(new Dimension(140, 40));
+        btnXacNhan.setFont(new Font("Roboto", Font.BOLD, 14));
         btnXacNhan.setBackground(new Color(0, 0, 205));
+        btnXacNhan.setForeground(Color.WHITE);
+        btnXacNhan.setFocusPainted(false);
         btnHuy.setPreferredSize(new Dimension(140, 40));
+        btnHuy.setFont(new Font("Roboto", Font.BOLD, 14));
+        btnHuy.setFocusPainted(false);
         buttonPanel.add(btnXacNhan);
         buttonPanel.add(btnHuy);
         add(buttonPanel, BorderLayout.SOUTH);

@@ -36,7 +36,6 @@ public class DialogSuaThuoc extends JDialog {
     private static final Color FOOTER_BG = new Color(230, 245, 245);
     private static final Color FIELD_BORDER = new Color(200, 200, 200);
 
-    private JTextField txtMaThuoc;
     private JTextField txtTenThuoc;
     private JTextField txtDonViTinh;
     private JTextField txtGiaBan;
@@ -80,9 +79,6 @@ public class DialogSuaThuoc extends JDialog {
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(new EmptyBorder(26, 48, 22, 48));
 
-        txtMaThuoc = createTextField();
-        txtMaThuoc.setEnabled(false);
-        txtMaThuoc.setBackground(new Color(240, 240, 240));
         txtTenThuoc = createTextField();
         cboxDanhMuc = createComboBox();
         txtDonViTinh = createTextField();
@@ -93,7 +89,6 @@ public class DialogSuaThuoc extends JDialog {
         txtMoTa = createTextArea();
 
         int row = 0;
-        addRow(formPanel, row++, "Mã thuốc:", txtMaThuoc);
         addRow(formPanel, row++, "Tên thuốc:", txtTenThuoc);
         addRow(formPanel, row++, "Danh mục:", cboxDanhMuc);
         addRow(formPanel, row++, "Đơn vị tính:", txtDonViTinh);
@@ -122,17 +117,20 @@ public class DialogSuaThuoc extends JDialog {
     private void addRow(JPanel panel, int row, String label, java.awt.Component field) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 6, 8, 6);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.fill = field instanceof JScrollPane ? GridBagConstraints.BOTH : GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.weightx = 0.28;
+        gbc.weighty = field instanceof JScrollPane ? 1.0 : 0.0;
+        gbc.anchor = field instanceof JScrollPane ? GridBagConstraints.NORTHWEST : GridBagConstraints.CENTER;
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Roboto", Font.PLAIN, 15));
         panel.add(lbl, gbc);
 
         gbc.gridx = 1;
         gbc.weightx = 0.72;
+        gbc.weighty = field instanceof JScrollPane ? 1.0 : 0.0;
         panel.add(field, gbc);
     }
 
@@ -155,7 +153,7 @@ public class DialogSuaThuoc extends JDialog {
     }
 
     private JTextArea createTextArea() {
-        JTextArea area = new JTextArea(3, 20);
+        JTextArea area = new JTextArea(4, 20);
         area.setFont(new Font("Roboto", Font.PLAIN, 14));
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
@@ -165,7 +163,7 @@ public class DialogSuaThuoc extends JDialog {
 
     private JScrollPane wrapTextArea(JTextArea area) {
         JScrollPane scroll = new JScrollPane(area);
-        scroll.setPreferredSize(new Dimension(360, 68));
+        scroll.setPreferredSize(new Dimension(360, 104));
         scroll.setBorder(new LineBorder(FIELD_BORDER, 1));
         return scroll;
     }
@@ -210,7 +208,6 @@ public class DialogSuaThuoc extends JDialog {
         if (thuocHienTai == null) {
             return;
         }
-        txtMaThuoc.setText(thuocHienTai.getMaThuoc());
         txtTenThuoc.setText(thuocHienTai.getTenThuoc());
         txtDonViTinh.setText(thuocHienTai.getDonViTinh());
         txtGiaBan.setText(String.format("%.0f", thuocHienTai.getGiaBan()));
@@ -229,7 +226,7 @@ public class DialogSuaThuoc extends JDialog {
         }
         try {
             DanhMucThuoc danhMuc = dsDanhMuc.get(cboxDanhMuc.getSelectedIndex());
-            Thuoc thuoc = new Thuoc(txtMaThuoc.getText().trim(), txtTenThuoc.getText().trim(),
+            Thuoc thuoc = new Thuoc(thuocHienTai.getMaThuoc(), txtTenThuoc.getText().trim(),
                     txtDonViTinh.getText().trim(), Double.parseDouble(txtGiaBan.getText().trim()), 0, null,
                     txtMoTa.getText().trim(), danhMuc, txtHinhAnh.getText().trim(),
                     txtThanhPhan.getText().trim(), null, txtXuatXu.getText().trim());
