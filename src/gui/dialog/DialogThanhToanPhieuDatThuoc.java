@@ -359,11 +359,12 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
 
                 phanTramThue = thue.getPhanTramThue();
                 tenThue = thue.getTenThue() + " (" + String.format("%.0f%%", phanTramThue) + ")";
-                tienThue = tongTienTruocKhiKhuyenMai * phanTramThue / 100;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        double tienSauGiamGia = tongTienTruocKhiKhuyenMai - giamGia;
+        tienThue = tienSauGiamGia * phanTramThue / 100;
         
         JLabel lblThueLabel = new JLabel(tenThue + ":");
         lblThueLabel. setFont(paymentFont);
@@ -374,7 +375,7 @@ public class DialogThanhToanPhieuDatThuoc extends JDialog {
         txtThue.setFont(paymentFont);
         paymentPanel.add(txtThue);
 
-        double thanhTien = tongTienTruocKhiKhuyenMai - giamGia + tienThue;
+        double thanhTien = tienSauGiamGia + tienThue;
 
         JLabel lblThanhTienLabel = new JLabel("Thành tiền:");
         lblThanhTienLabel.setFont(new Font("Roboto", Font. BOLD, 16));

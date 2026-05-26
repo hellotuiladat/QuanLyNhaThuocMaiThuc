@@ -659,8 +659,9 @@ public class FormTimKiemHoaDon extends JPanel
         document.add(new Paragraph(" "));
 
         double tienGiamGia = khuyenMai != null ? tamTinh * khuyenMai.getPhanTramGiamGia() / 100 : 0;
-        double tienThue = thue != null ? tamTinh * thue.getPhanTramThue() / 100 : 0;
-        double thanhToan = tamTinh - tienGiamGia + tienThue;
+        double tienSauGiamGia = tamTinh - tienGiamGia;
+        double tienThue = thue != null ? tienSauGiamGia * thue.getPhanTramThue() / 100 : 0;
+        double thanhToan = tienSauGiamGia + tienThue;
 
         document.add(new Paragraph("Tổng tiền: " + formatMoney(tamTinh), fontNormal));
         document.add(new Paragraph("Thuế: " + (thue != null ? String.format("%.0f%% (+%s)", thue.getPhanTramThue(), formatMoney(tienThue)) : formatMoney(0)), fontNormal));

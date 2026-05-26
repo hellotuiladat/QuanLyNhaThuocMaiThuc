@@ -12,7 +12,8 @@ import ConnectDB.DatabaseConnection;
 public class ThongKeLoiNhuanDAO {
     private static final String DOANH_THU =
             "(cthd.soLuong * cthd.donGia "
-            + "* (1 - ISNULL(km.phanTramGiamGia, 0) / 100.0 + ISNULL(thue.phanTramThue, 0) / 100.0))";
+            + "* (1 - ISNULL(km.phanTramGiamGia, 0) / 100.0) "
+            + "* (1 + ISNULL(thue.phanTramThue, 0) / 100.0))";
     
     /**
      * Class để lưu thông tin thống kê sản phẩm

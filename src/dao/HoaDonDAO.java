@@ -20,7 +20,8 @@ import entity.Thue;
 public class HoaDonDAO {
     private static final String DOANH_THU =
             "(cthd.soLuong * cthd.donGia "
-            + "* (1 - ISNULL(km.phanTramGiamGia, 0) / 100.0 + ISNULL(thue.phanTramThue, 0) / 100.0))";
+            + "* (1 - ISNULL(km.phanTramGiamGia, 0) / 100.0) "
+            + "* (1 + ISNULL(thue.phanTramThue, 0) / 100.0))";
 
     public static class HoaDonHienThi {
         private final String maHD;
